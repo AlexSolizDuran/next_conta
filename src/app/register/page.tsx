@@ -6,21 +6,36 @@ import Link from 'next/link';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    username: '',
     password: '',
-    confirmPassword: '',
-    company: ''
+    email: '',
+    persona: {
+      nombre: '',
+      apellido: '',
+      telefono: '',
+    },
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    if (name === 'nombre' || name === 'apellido' || name === 'telefono') {
+      setFormData({
+        ...formData,
+        persona: {
+          ...formData.persona,
+          [name]: value
+        }
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,23 +43,27 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Aquí iría la lógica de registro
-      console.log('Datos de registro:', formData);
-      
-      // Simulación de registro exitoso
-      setTimeout(() => {
-        setLoading(false);
+      const response = await fetch('http://127.0.0.1:8000/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Registro exitoso:', result);
         router.push('/login');
-      }, 1000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Error al crear la cuenta. Inténtalo de nuevo.');
+      }
     } catch (err) {
-      setError('Error al crear la cuenta. Inténtalo de nuevo.');
+      console.error('Error en el registro:', err);
+      setError('Error de conexión. Verifica que el servidor esté funcionando.');
+    } finally {
       setLoading(false);
     }
   };
@@ -64,49 +83,17 @@ export default function RegisterPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Nombre completo
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Nombre de usuario
               </label>
               <input
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
                 required
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Tu nombre completo"
-                value={formData.name}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Correo electrónico
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="tu@email.com"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="company" className="block text-sm font-medium text-gray-700">
-                Empresa (opcional)
-              </label>
-              <input
-                id="company"
-                name="company"
-                type="text"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Nombre de tu empresa"
-                value={formData.company}
+                placeholder="Username"
+                value={formData.username}
                 onChange={handleChange}
               />
             </div>
@@ -121,24 +108,73 @@ export default function RegisterPage() {
                 type="password"
                 required
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Contraseña"
                 value={formData.password}
                 onChange={handleChange}
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirmar contraseña
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Nombre de Usuario
               </label>
               <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
                 required
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Repite tu contraseña"
-                value={formData.confirmPassword}
+                placeholder="Correo electrónico"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
+                Nombre
+              </label>
+              <input
+                id="nombre"
+                name="nombre"
+                type="text"
+                required
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Nombre"
+                value={formData.persona.nombre}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="apellido" className="block text-sm font-medium text-gray-700">
+                Apellido
+              </label>
+              <input
+                id="apellido"
+                name="apellido"
+                type="text"
+                required
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Apellido"
+                value={formData.persona.apellido}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="telefono" className="block text-sm font-medium text-gray-700">
+                Numero telefonico
+              </label>
+              <input
+                id="telefono"
+                name="telefono"
+                type="number"
+                required
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Numero telefonico"
+                value={formData.persona.telefono}
                 onChange={handleChange}
               />
             </div>
