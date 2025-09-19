@@ -63,7 +63,7 @@ export default function CuentaDetallePage() {
           // Si tu endpoint es diferente, ajústalo aquí.
 
           const movimientosResponse = await fetch(
-            `http://127.0.0.1:8000/cuentas/${id}/movimientos/`,
+            `${apiUrl}/cuentas/${id}/movimientos/`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }

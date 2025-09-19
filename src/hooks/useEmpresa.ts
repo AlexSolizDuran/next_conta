@@ -26,7 +26,7 @@ export function useEmpresa() {
         return;
       }
       console.log(token)
-      const response = await fetch('http://127.0.0.1:8000/empresas/', {
+      const response = await fetch(`${apiUrl}/empresas/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
