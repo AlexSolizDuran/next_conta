@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface Empresa {
   id: string;
@@ -35,7 +36,7 @@ export default function EmpresaModal({ isOpen, onClose, onEmpresaCreated }: Empr
 
     try {
       
-      const response = await fetch('http://127.0.0.1:8000/empresas/', {
+      const response = await fetch(`${apiUrl}/empresas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

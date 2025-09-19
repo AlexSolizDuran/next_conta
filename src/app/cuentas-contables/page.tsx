@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "../../hooks/useAuth";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import ClaseCuentaModal from "@/components/ClaseCuentaModal";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface CuentaContable {
   id: string;
@@ -56,7 +57,7 @@ export default function CuentasContablesPage() {
     setError(null);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/cuentas/", {
+      const response = await fetch(`${apiUrl}/cuentas/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
