@@ -23,10 +23,12 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
+      - name: npm install, build, and export standalone
         run: |
           npm install
-          npm run build 
+          npm run build
+          npx next export
+
 
       - name: Copy static files 
         run: |
