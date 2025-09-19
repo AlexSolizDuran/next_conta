@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../hooks/useAuth';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/auth/login/', {
+      const response = await fetch(`${apiUrl}/auth/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

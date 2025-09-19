@@ -7,6 +7,7 @@ interface Empresa {
   nombre: string;
   usuario: string;
 }
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export function useEmpresa() {
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
@@ -63,7 +64,7 @@ export function useEmpresa() {
         throw new Error('No hay token de autenticación');
       }
 
-      const response = await fetch('http://127.0.0.1:8000/empresas/', {
+      const response = await fetch(`${apiUrl}/empresas/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

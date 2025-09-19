@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProtectedRoute from '../../../components/ProtectedRoute';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 // --- Interfaces ---
 interface Cuenta {
@@ -54,7 +55,7 @@ export default function CrearAsientoPage() {
     setLoadingCuentas(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/cuentas/', {
+      const response = await fetch(`${apiUrl}/cuentas/`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {

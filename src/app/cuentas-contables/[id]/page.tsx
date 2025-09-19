@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import Link from "next/link";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 // Interfaces (puedes moverlas a un archivo compartido si las usas en otros lugares)
 interface CuentaContable {
@@ -48,7 +49,7 @@ export default function CuentaDetallePage() {
 
           // 1. Obtener detalles de la cuenta
           const cuentaResponse = await fetch(
-            `http://127.0.0.1:8000/cuentas/${id}/`,
+            `${apiUrl}/cuentas/${id}/`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
