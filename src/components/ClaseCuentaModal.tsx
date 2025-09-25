@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface ClaseCuenta {
   codigo: string;
@@ -17,6 +16,8 @@ export default function ClaseCuentaModal({
   isOpen,
   onClose,
 }: ClaseCuentaModalProps) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const [formData, setFormData] = useState<ClaseCuenta>({
     codigo: "",
     nombre: "",

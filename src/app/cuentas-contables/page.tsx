@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useAuth } from "../../hooks/useAuth";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import ClaseCuentaModal from "@/components/ClaseCuentaModal";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface CuentaContable {
   id: string;
@@ -19,6 +18,8 @@ interface ClaseCuenta {
   nombre: string;
 }
 export default function CuentasContablesPage() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const { user, logout, loading: authLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clases, setClases] = useState<ClaseCuenta[]>([]);

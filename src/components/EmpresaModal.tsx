@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface Empresa {
   id: string;
@@ -16,6 +15,8 @@ interface EmpresaModalProps {
 }
 
 export default function EmpresaModal({ isOpen, onClose, onEmpresaCreated }: EmpresaModalProps) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const [formData, setFormData] = useState({
     nombre: ''
   });

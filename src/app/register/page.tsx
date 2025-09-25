@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export default function RegisterPage() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',

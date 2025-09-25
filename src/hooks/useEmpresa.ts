@@ -7,9 +7,10 @@ interface Empresa {
   nombre: string;
   usuario: string;
 }
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export function useEmpresa() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

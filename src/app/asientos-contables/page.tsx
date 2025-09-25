@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../hooks/useAuth";
 import ProtectedRoute from "../../components/ProtectedRoute";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface AsientoContable {
   id: string;
@@ -24,6 +23,8 @@ interface Movimiento {
   haber: number;
 }
 export default function AsientosContablesPage() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const [asientos, setAsientos] = useState<AsientoContable[]>([]);
   const { user, logout, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -68,15 +69,12 @@ export default function AsientosContablesPage() {
     setError(null);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${apiUrl}/asiento_contable/${id}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${apiUrl}/asiento_contable/${id}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.status === 204 || response.ok) {
         // 204 No Content es una respuesta común para DELETE exitoso
@@ -158,6 +156,11 @@ export default function AsientosContablesPage() {
                           {asiento.descripcion}
                         </h3>
                       </div>
+                      <Link href={`/cuentas-contables/${asiento.id}`}>
+                        <span className="bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-semibold py-1 px-2 rounded cursor-pointer">
+                          Ver Movimientos
+                        </span>
+                      </Link>
                       <button
                         onClick={() => handleDelete(asiento.id)}
                         className="text-red-600 hover:text-red-900 text-sm font-medium"

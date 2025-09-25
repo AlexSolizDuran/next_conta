@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface User {
   id: string;
@@ -11,6 +10,8 @@ interface User {
 }
 
 export function useAuth() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();

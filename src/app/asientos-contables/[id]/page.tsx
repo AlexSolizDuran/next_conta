@@ -27,7 +27,7 @@ interface Movimiento {
   haber: number;
 }
 
-export default function CuentaDetallePage() {
+export default function AsientoDetallePage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const params = useParams();
@@ -183,3 +183,5 @@ export default function CuentaDetallePage() {
     </ProtectedRoute>
   );
 }
+
+
