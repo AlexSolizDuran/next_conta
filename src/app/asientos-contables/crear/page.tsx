@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ProtectedRoute from '../../../components/ProtectedRoute';
+import ProtectedRoute from '../../../component/ProtectedRoute';
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 // --- Interfaces ---

@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../hooks/useAuth';
 import { useEmpresa } from '../../hooks/useEmpresa';
-import ProtectedRoute from '../../components/ProtectedRoute';
-import EmpresaModal from '../../components/EmpresaModal';
+import ProtectedRoute from '../../component/ProtectedRoute';
+import EmpresaModal from '../../component/EmpresaModal';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
