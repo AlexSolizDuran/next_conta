@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   //    Lo redirigimos a la página de login.
   if (!token) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
   try {
     // La clave secreta DEBE estar en tus variables de entorno (.env.local)
     // y debe ser la misma con la que se firmó el token en el backend.
-    const secret = new TextEncoder().encode('django-insecure-b0b%)z2e*y-7nj(6ffx5ox7w+9rnw1!%n^s^ews+31b-^cxfjh');
+    const secret = new TextEncoder().encode('django-insecure-mf&$v2m+id9iphtz1w2ap*@2nv93eomfv$2ajtwjti_8eurz*a');
     const {payload} = await jwtVerify(token, secret);
 
     // Si jwtVerify no lanza un error, el token es válido.
@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirigimos al login y eliminamos la cookie inválida del navegador.
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/login";
     const response = NextResponse.redirect(url);
     response.cookies.delete("sessionToken"); // Limpiamos la cookie corrupta
 
@@ -47,8 +47,8 @@ export const config = {
      * Coincide con todas las rutas que quieras proteger.
      * Excluye rutas como /login, /api, _next/static, etc. para evitar bucles.
      */
-    "/config/:path*",
-    "/admin/:path*",
+    "/librovivo/:path*",
+    "/perfil/:path*",
 
   ],
 };

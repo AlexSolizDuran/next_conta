@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
-import ProtectedRoute from "../../../component/ProtectedRoute";
+import ProtectedRoute from "../../../components/ProtectedRoute";
 import Link from "next/link";
 
 // Interfaces (puedes moverlas a un archivo compartido si las usas en otros lugares)

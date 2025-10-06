@@ -4,17 +4,16 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   const url = process.env.API_URL;
   try {
-    const { username, password } = await request.json();
+    const loginData = await request.json();
 
     // 1. Llamamos a tu backend REAL para autenticar al usuario
     const backendResponse = await fetch(
-      `${url}/usuario/login/`, // URL del backend actualizada
+      `${url}/auth/login/`, // URL del backend actualizada
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(loginData),
         credentials: "include", // 👈 Importante para pasar cookies
-
       }
     );
 
@@ -41,7 +40,6 @@ export async function POST(request: Request) {
     // 3. Creamos una respuesta y establecemos el token en una cookie httpOnly
     const response = NextResponse.json({
       success: true,
-      roles: data.roles,
       username: data.username,
       nombre: data.nombre,
       apellido: data.apellido,

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../hooks/useAuth";
-import ProtectedRoute from "../../component/ProtectedRoute";
-import ClaseCuentaModal from "@/component/ClaseCuentaModal";
+import ProtectedRoute from "../../components/ProtectedRoute";
+import ClaseCuentaModal from "@/components/ClaseCuentaModal";
 
 interface CuentaContable {
   id: string;

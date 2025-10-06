@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../hooks/useAuth";
-import ProtectedRoute from "../../component/ProtectedRoute";
+import ProtectedRoute from "../../components/ProtectedRoute";
 
 interface AsientoContable {
   id: string;

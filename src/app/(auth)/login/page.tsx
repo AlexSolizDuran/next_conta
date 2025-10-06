@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Login } from '@/types/auth/login';
+import { apiFetcher } from '@/lib/apiFetcher';
+import { User } from '@/types/auth/user';
 
 export default function LoginPage() {
-
-  const [loginData, setLoginData] = useState({
+  const [loginData, setLoginData] = useState<Login>({
     username: '',
-    password: ''
+    password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,7 +19,7 @@ export default function LoginPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({
       ...loginData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -27,34 +29,24 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch(`${apiUrl}/auth/login/`, {
+      // `apiFetcher` devuelve directamente el JSON tipado como User
+      const result = await apiFetcher<User>('/api/auth/login/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(loginData),
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        
-        // Usar el hook de autenticación para guardar el token y datos del usuario
-        
-        
-        router.push('/dashboard');
-      } else {
-        // Intentar parsear como JSON, si falla mostrar error genérico
-        try {
-          const errorData = await response.json();
-          setError(errorData.message || 'Error al iniciar sesión. Verifica tus credenciales.');
-        } catch (parseError) {
-          console.error('Error parseando respuesta:', parseError);
-          setError(`Error del servidor (${response.status}): ${response.statusText}`);
-        }
-      }
-    } catch (err) {
+      localStorage.setItem("user", JSON.stringify(result));
+
+      router.push('/dashboard');
+    } catch (err: any) {
       console.error('Error en el login:', err);
-      setError('Error de conexión. Verifica que el servidor esté funcionando.');
+
+      // Si tu apiFetcher lanza errores con mensaje del backend
+      if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Error de conexión. Verifica que el servidor esté funcionando.');
+      }
     } finally {
       setLoading(false);
     }
@@ -71,7 +63,7 @@ export default function LoginPage() {
             Accede a tu sistema de contabilidad
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -85,7 +77,7 @@ export default function LoginPage() {
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Usuario"
-                value={formData.username}
+                value={loginData.username}
                 onChange={handleChange}
               />
             </div>
@@ -101,16 +93,14 @@ export default function LoginPage() {
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Contraseña"
-                value={formData.password}
+                value={loginData.password}
                 onChange={handleChange}
               />
             </div>
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm text-center">
-              {error}
-            </div>
+            <div className="text-red-600 text-sm text-center">{error}</div>
           )}
 
           <div>
@@ -126,7 +116,10 @@ export default function LoginPage() {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               ¿No tienes una cuenta?{' '}
-              <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link
+                href="/register"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
                 Regístrate aquí
               </Link>
             </p>

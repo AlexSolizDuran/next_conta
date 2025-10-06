@@ -3,7 +3,8 @@ interface User {
     nombre : string,
     apellido : string,
     email : string,
-    roles: string,
+    access:string,
+    success :boolean
 }
 
 export type {User}

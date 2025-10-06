@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '../../hooks/useAuth';
+
 import { useEmpresa } from '../../hooks/useEmpresa';
-import ProtectedRoute from '../../component/ProtectedRoute';
-import EmpresaModal from '../../component/EmpresaModal';
+
+import { User } from '@/types/auth/user';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+
   const { empresa, loading: empresaLoading, tieneEmpresa, verificarEmpresa } = useEmpresa();
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
+  const user: User = JSON.parse(localStorage.getItem("user") || "{}");
 
   // Verificar si necesita mostrar el modal de empresa
   useEffect(() => {
+    console.log(user)
     if (!empresaLoading && !tieneEmpresa) {
       setShowEmpresaModal(true);
     }
@@ -25,7 +27,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <ProtectedRoute>
+    
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow">
@@ -37,12 +39,10 @@ export default function DashboardPage() {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              {empresa && (
-                <span className="text-sm text-gray-700">Empresa: {empresa.nombre}</span>
-              )}
-              <span className="text-sm text-gray-700">Usuario: {user?.username}</span>
+              
+              <span className="text-sm text-gray-700">Usuario: {user.access} </span>
               <button
-                onClick={logout}
+                
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
               >
                 Cerrar Sesión
@@ -53,7 +53,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-indigo-600">
+      <nav className=" bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap space-x-2 md:space-x-8">
             <Link
@@ -243,12 +243,5 @@ export default function DashboardPage() {
       </main>
     </div>
 
-    {/* Modal de Empresa */}
-    <EmpresaModal
-      isOpen={showEmpresaModal}
-      onClose={() => setShowEmpresaModal(false)}
-      onEmpresaCreated={handleEmpresaCreated}
-    />
-    </ProtectedRoute>
   );
 }
