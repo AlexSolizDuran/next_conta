@@ -72,7 +72,7 @@ export default function AsientoPage() {
               <td className="border border-gray-300 px-4 py-2">
                 <Link
                   key={asiento.id}
-                  href={`/librovivo/asiento_contable/`}
+                  href={`/librovivo/asiento_contable/asiento/${asiento.id}`}
                   
                   className="flex items-center p-2 text-white hover:text-blue-900 hover:bg-white rounded-md transition-colors"
                 >
