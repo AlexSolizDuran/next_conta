@@ -1,17 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const url = process.env.API_URL;
   try {
     const loginData = await request.json();
-
+    const token1 = request.cookies.get("sessionToken")?.value;
     // 1. Llamamos a tu backend REAL para autenticar al usuario
     const backendResponse = await fetch(
       `${url}/auth_empresa/login_empresa/`, // URL del backend actualizada
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token1}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(loginData),
         credentials: "include", // 👈 Importante para pasar cookies
       }
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
     // 2. El backend nos devuelve el token en el cuerpo de la respuesta
     const data = await backendResponse.json();
     const token = data.access;
-    
+
     if (!token) {
       return NextResponse.json(
         { message: "El token no fue proporcionado por el backend" },
@@ -41,10 +43,10 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       access: token,
       empresa: data.empresa,
-      user_empresa:data.empresa,
-      usuario:data.usuario,
+      user_empresa: data.empresa,
+      usuario: data.usuario,
       roles: data.roles,
-      custom:data.custom,
+      custom: data.custom,
     });
     const cookies = backendResponse.headers.get("set-cookie");
     if (cookies) {

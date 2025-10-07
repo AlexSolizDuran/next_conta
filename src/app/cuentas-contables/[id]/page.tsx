@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "../../../hooks/useAuth";
-import ProtectedRoute from "../../../components/ProtectedRoute";
+
 import Link from "next/link";
 
 // Interfaces (puedes moverlas a un archivo compartido si las usas en otros lugares)
@@ -33,7 +32,6 @@ export default function CuentaDetallePage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string; // Obtenemos el ID de la URL
-  const { user, loading: authLoading } = useAuth();
 
   const [cuenta, setCuenta] = useState<CuentaContable | null>(null);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
@@ -41,7 +39,7 @@ export default function CuentaDetallePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id && !authLoading) {
+    if (id ) {
       const fetchData = async () => {
         setLoading(true);
         setError(null);
@@ -87,9 +85,9 @@ export default function CuentaDetallePage() {
       };
       fetchData();
     }
-  }, [id, authLoading]);
+  }, [id]);
 
-  if (loading || authLoading) {
+  if (loading ) {
     return (
       <div className="flex justify-center items-center h-screen">
         Cargando detalles...
@@ -106,7 +104,6 @@ export default function CuentaDetallePage() {
   }
 
   return (
-    <ProtectedRoute>
       <div className="min-h-screen bg-gray-100 p-8">
         <div className="max-w-4xl mx-auto">
           <Link
@@ -180,6 +177,5 @@ export default function CuentaDetallePage() {
           </div>
         </div>
       </div>
-    </ProtectedRoute>
   );
 }

@@ -1,6 +1,7 @@
 import { CuentaList } from "../cuenta/cuenta";
 
 interface MovimientoSet{
+    
     referencia:string,
     cuenta:string,
     debe:number,

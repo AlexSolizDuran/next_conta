@@ -12,13 +12,15 @@ export async function proxyToBackend(
     }
 
     const { searchParams } = new URL(req.url);
-    const queryString = searchParams.toString() ? `?${searchParams.toString()}` : "";
+    const queryString = searchParams.toString()
+      ? `?${searchParams.toString()}`
+      : "";
     const backendUrl = `${process.env.API_URL}/${endpoint}/${queryString}`;
 
     const options: RequestInit = {
       method: req.method,
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     };
@@ -34,6 +36,9 @@ export async function proxyToBackend(
     return NextResponse.json(data, { status: res.status });
   } catch (err: any) {
     console.error(`Error proxy a ${endpoint}:`, err);
-    return NextResponse.json({ message: "Error interno del servidor" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error interno del servidor" },
+      { status: 500 }
+    );
   }
 }

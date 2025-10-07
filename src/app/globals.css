@@ -1,7 +1,9 @@
+
 @import "tailwindcss";
 
-:root {
-  --color_primario: #439E3A; /* azul por defecto */
-  --color_secundario: #7DD177; /* naranja por defecto */
-  --color_terciario: #CBFFC7; /* verde por defecto */
+/* Definir variables para que Tailwind genere utilidades */
+@theme {
+  --color-primario: #439E3A;
+  --color-secundario: #7DD177;
+  --color-terciario: #CBFFC7;
 }

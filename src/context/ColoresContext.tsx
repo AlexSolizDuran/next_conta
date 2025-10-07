@@ -1,54 +1,56 @@
 // src/context/ColoresContext.tsx
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { CustomSet, CustomGet } from "@/types/empresa/custom";
+import { createContext, useContext, ReactNode, useEffect } from 'react';
+import useSWR from 'swr';
+import { CustomGet, CustomSet } from '@/types/empresa/custom';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 interface ColoresContextProps {
   colores: CustomSet | null;
-  setColores: (colores: CustomSet) => void;
-  cargarColores: () => Promise<void>;
+  recargarColores: () => void;
 }
 
 const ColoresContext = createContext<ColoresContextProps>({
   colores: null,
-  setColores: () => {},
-  cargarColores: async () => {},
+  recargarColores: () => {},
 });
 
 export const ColoresProvider = ({ children }: { children: ReactNode }) => {
-  const [colores, setColores] = useState<CustomSet | null>(null);
+  const customId = typeof window !== 'undefined' ? localStorage.getItem('custom_id') : null;
 
-  const cargarColores = async () => {
-    const customId = localStorage.getItem('custom_id');
-    if (!customId) return;
+  const { data, mutate } = useSWR<CustomGet>(
+    customId ? `/api/empresa/custom/${customId}` : null,
+    fetcher
+  );
 
-    try {
-      const res = await fetch(`/api/empresa/custom/${customId}`);
-      if (!res.ok) throw new Error('No se pudieron obtener los colores');
+  // Aplicar los colores al DOM cuando cambien
+  useEffect(() => {
+    if (!data) return;
 
-      const data: CustomGet = await res.json();
+    const coloresSet: CustomSet = {
+      color_primario: data.color_primario,
+      color_secundario: data.color_secundario,
+      color_terciario: data.color_terciario,
+    };
 
-      const coloresSet: CustomSet = {
-        color_primario: data.color_primario,
-        color_secundario: data.color_secundario,
-        color_terciario: data.color_terciario,
-      };
-
-      setColores(coloresSet);
-
-      // Actualizar variables CSS dinámicamente
-      Object.entries(coloresSet).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(`--${key}`, value);
-      });
-
-    } catch (err) {
-      console.error('Error cargando colores:', err);
-    }
-  };
+    Object.entries(coloresSet).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(`--${key}`, value);
+    });
+  }, [data]);
 
   return (
-    <ColoresContext.Provider value={{ colores, setColores, cargarColores }}>
+    <ColoresContext.Provider
+      value={{
+        colores: data ? {
+          color_primario: data.color_primario,
+          color_secundario: data.color_secundario,
+          color_terciario: data.color_terciario
+        } : null,
+        recargarColores: () => mutate(),
+      }}
+    >
       {children}
     </ColoresContext.Provider>
   );

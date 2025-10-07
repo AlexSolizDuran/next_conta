@@ -1,9 +1,9 @@
 import { MovimientoList, MovimientoSet } from "./movimiento"
 
 interface AsientoSet{
-    numero:string,
+    
     descripcion:string,
-    movimientos:MovimientoSet,
+    movimientos:MovimientoSet[],
     estado?:string
 }
 interface AsientoGet{
@@ -11,14 +11,16 @@ interface AsientoGet{
     numero:string,
     descripcion:string,
     estado:string,
-    movimientos :MovimientoList
+    movimientos :MovimientoList[],
+    fecha : string
 }
 
 interface AsientoList{
     id:string,
     numero:string,
     descripcion:string,
-    estado:string
+    estado:string,
+    fecha:string
 }
 
 export type {AsientoSet,AsientoGet,AsientoList}

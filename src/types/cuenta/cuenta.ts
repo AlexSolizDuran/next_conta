@@ -16,7 +16,7 @@ interface CuentaGet{
 
 interface CuentaList{
     id:string,
-    codido:string
+    codigo:string,
     nombre:string,
     estado:string
 }

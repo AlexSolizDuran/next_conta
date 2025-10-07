@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAuth } from "../../hooks/useAuth";
-import ProtectedRoute from "../../components/ProtectedRoute";
+
 import ClaseCuentaModal from "@/components/ClaseCuentaModal";
 
 interface CuentaContable {
@@ -20,7 +19,6 @@ interface ClaseCuenta {
 export default function CuentasContablesPage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  const { user, logout, loading: authLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clases, setClases] = useState<ClaseCuenta[]>([]);
 
@@ -78,10 +76,10 @@ export default function CuentasContablesPage() {
   };
   // EVENTO PARA QUE AL ENTRAR A LA PESTAÑA SE OBTENGA LAS CUENTAS
   useEffect(() => {
-    if (!authLoading) {
+   
       fetchCuentas();
-    }
-  }, [authLoading]);
+    
+  });
 
   // EVENTO PARA QUE EL FORMULARIO PUEDA ESCRIBIR
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +147,6 @@ export default function CuentasContablesPage() {
   };
 
   return (
-    <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white shadow">
@@ -379,6 +376,6 @@ export default function CuentasContablesPage() {
       </div>
 
       <ClaseCuentaModal isOpen={isModalOpen} onClose={handleClose} />
-    </ProtectedRoute>
+   
   );
 }

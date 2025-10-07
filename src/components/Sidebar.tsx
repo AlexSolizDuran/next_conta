@@ -12,22 +12,12 @@ import {
   Bell as BellIcon,
   Calendar as CalendarIcon,
   Settings as SettingsIcon,
+  MenuIcon,
 } from "lucide-react";
 // Iconos de ejemplo (puedes usar react-icons, heroicons, etc.)
 
 // Cambiado a un ícono de flecha SVG para un look más moderno
-const MenuIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-  </svg>
-);
+
 const CloseIcon = () => <span>✕</span>;
 
 type SidebarVariant = "admin" | "propietario";
@@ -48,10 +38,10 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
   };
   const adminItems = [
     
-    { name: "Usuarios", href: "/admin/usuarios/usuarios", icon: <UsersIcon /> }, // varios usuarios
-    //{ name: "Residencias", href: "/admin/residencias/viviendas", icon: <HomeIcon /> },
-   // { name: "Cobros", href: "/admin/cobros/expensas", icon: <CreditCardIcon /> },
-    //{ name: "Incidencias", href: "/admin/incidencia", icon: <BellIcon /> }, // alertas/incidencias
+    { name: "Panel", href: "/librovivo/dashboard", icon: <UsersIcon /> },
+    { name: "Cuentas", href: "/librovivo/cuenta_contable", icon: <FileTextIcon /> },
+    { name: "Asientos", href: "/librovivo/asiento_contable/asiento", icon: <CreditCardIcon /> },
+    
     
   ];
  
@@ -70,7 +60,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
       {/* Ajustado para que el botón sea un semicírculo en el borde */}
       <div className="md:hidden fixed top-1/4 -translate-y-1/2 ">
         <button
-          className="pl-2 pr-1 py-4 bg-blue-900 text-white rounded-r-full shadow-lg focus:outline-none"
+          className="pl-2 pr-1 py-4 bg-secundario text-white rounded-r-full shadow-lg focus:outline-none"
           onClick={() => setOpen(true)}
           aria-label="Abrir menú"
         >
@@ -87,7 +77,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={`${open ? "translate-x-0" : "-translate-x-full"
-          } fixed top-0 left-0 w-64 h-screen bg-blue-900 shadow-lg z-20 transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:translate-x-0 md:flex md:flex-col md:h-screen overflow-y-auto`}
+          } fixed top-0 left-0 w-64 h-screen bg-primario shadow-lg z-20 transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:translate-x-0 md:flex md:flex-col md:h-screen overflow-y-auto`}
       >
         <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
           <h1 className="font-bold text-xl text-gray-800 dark:text-white">

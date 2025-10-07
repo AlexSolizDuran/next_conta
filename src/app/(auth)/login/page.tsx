@@ -37,7 +37,7 @@ export default function LoginPage() {
 
       localStorage.setItem("user", JSON.stringify(result));
 
-      router.push('/dashboard');
+      router.push('/perfil/mis_empresas');
     } catch (err: any) {
       console.error('Error en el login:', err);
 
