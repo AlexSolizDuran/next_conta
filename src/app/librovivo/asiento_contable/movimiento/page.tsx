@@ -9,10 +9,29 @@ import useSWR from "swr";
 
 export default function MovimientosPage() {
   const [page, setPage] = useState(1);
-  const url = `/api/asiento_contable/movimiento/?page=${page}`;
+  const [sortField, setSortField] = useState<
+    "asiento_contable__numero" | "asiento_contable__fecha"
+  >("asiento_contable__numero");
+  const [sortAsc, setSortAsc] = useState(true);
 
-  const { data: movimientos, error, isLoading } = useSWR<PaginatedResponse<MovimientoList>>(url, apiFetcher);
+  const url = `/api/asiento_contable/movimiento/?page=${page}&ordering=${
+    sortAsc ? sortField : `-${sortField}`
+  }`;
 
+  const {
+    data: movimientos,
+    error,
+    isLoading,
+  } = useSWR<PaginatedResponse<MovimientoList>>(url, apiFetcher);
+
+  const toggleSort = (field: "asiento_contable__numero" | "asiento_contable__fecha") => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc); // si ya es el mismo campo, invertir
+    } else {
+      setSortField(field);
+      setSortAsc(true); // si es un campo nuevo, iniciar ascendente
+    }
+  };
   if (error)
     return (
       <div className="text-center p-10 text-red-500">
@@ -28,37 +47,66 @@ export default function MovimientosPage() {
       <h1 className="text-2xl font-bold text-blue-900 mb-4">
         Gestión de Movimientos
       </h1>
-      <Link
-        href={"/librovivo/asiento_contable/movimiento/crear"}
-        className="inline-block mb-4 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md"
-      >
-        Añadir Movimiento
-      </Link>
 
       <table className="w-full table-auto border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-4 py-2 text-left">Referencia</th>
-            <th className="border border-gray-300 px-4 py-2 text-left">Cuenta</th>
-            <th className="border border-gray-300 px-4 py-2 text-right">Debe</th>
-            <th className="border border-gray-300 px-4 py-2 text-right">Haber</th>
-            <th className="border border-gray-300 px-4 py-2 text-left">Asiento</th>
-            <th className="border border-gray-300 px-4 py-2 text-left">Acciones</th>
+            <th
+              className="border border-gray-300 px-4 py-2 text-left cursor-pointer"
+              onClick={() => toggleSort("asiento_contable__numero")}
+            >
+              Numero {sortField === "asiento_contable__numero" ? (sortAsc ? "↑" : "↓") : ""}
+            </th>
+            <th
+              className="border border-gray-300 px-4 py-2 text-left cursor-pointer"
+              onClick={() => toggleSort("asiento_contable__fecha")}
+            >
+              Fecha {sortField === "asiento_contable__fecha" ? (sortAsc ? "↑" : "↓") : ""}
+            </th>
+            <th className="border border-gray-300 px-4 py-2 text-left">
+              Referencia
+            </th>
+            <th className="border border-gray-300 px-4 py-2 text-left">
+              Cuenta
+            </th>
+            <th className="border border-gray-300 px-4 py-2 text-right">
+              Debe
+            </th>
+            <th className="border border-gray-300 px-4 py-2 text-right">
+              Haber
+            </th>
+
+            <th className="border border-gray-300 px-4 py-2 text-left">
+              Acciones
+            </th>
           </tr>
         </thead>
         <tbody>
           {movimientos.results.map((mov) => (
             <tr key={mov.id} className="hover:bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2">{mov.referencia}</td>
+              <td className="border border-gray-300 px-4 py-2">
+                {mov.asiento?.numero || "—"}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {mov.asiento?.fecha
+                  ? new Date(mov.asiento.fecha).toLocaleDateString()
+                  : "—"}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {mov.referencia}
+              </td>
               <td className="border border-gray-300 px-4 py-2">
                 {mov.cuenta?.codigo} - {mov.cuenta?.nombre}
               </td>
-              <td className="border border-gray-300 px-4 py-2 text-right">{mov.debe.toFixed(2)}</td>
-              <td className="border border-gray-300 px-4 py-2 text-right">{mov.haber.toFixed(2)}</td>
-              <td className="border border-gray-300 px-4 py-2">{mov.asiento?.numero || "—"}</td>
+              <td className="border border-gray-300 px-4 py-2 text-right">
+                {mov.debe}
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-right">
+                {mov.haber}
+              </td>
               <td className="border border-gray-300 px-4 py-2">
                 <Link
-                  href={`/librovivo/asiento_contable/movimiento/${mov.id}`}
+                  href={`/librovivo/asiento_contable/asiento/${mov.asiento?.id}`}
                   className="text-blue-600 hover:underline"
                 >
                   Ver

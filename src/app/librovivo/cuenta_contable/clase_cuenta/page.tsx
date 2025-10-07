@@ -110,7 +110,7 @@ export default function ClaseCuentaPage() {
               <tr key={clase.id} className="hover:bg-gray-50">
                 <td className="border border-gray-300 px-4 py-2">{clase.codigo}</td>
                 <td className="border border-gray-300 px-4 py-2">{clase.nombre}</td>
-                <td className="border border-gray-300 px-4 py-2">{clase.padre?.nombre || "—"}</td>
+                <td className="border border-gray-300 px-4 py-2">{clase.padre?.codigo} - {clase.padre?.nombre || "—"}</td>
                 <td className="border border-gray-300 px-4 py-2 flex gap-2">
                   <button
                     onClick={() => openEditModal(clase)}
