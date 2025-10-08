@@ -1,10 +1,12 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Register } from "@/types/auth/register";
 import { PersonaSet } from "@/types/usuario/persona";
+import FormInput from "@/components/FormInput";
+import ButtonInput from "@/components/ButtonInput";
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -46,10 +48,9 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    console.log("Formulario enviado:", formData);
 
     try {
-      const response = await fetch(`/api/auth/register/`, {
+      const response = await fetch(`api/auth/register/`, {
         method: "POST",
         body: JSON.stringify(formData),
       });
@@ -94,120 +95,66 @@ export default function RegisterPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Nombre de usuario
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Contraseña
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Contraseña"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Correo electrónico"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="nombre"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Nombre
-              </label>
-              <input
-                id="nombre"
-                name="nombre"
-                type="text"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Nombre"
-                value={formData.persona.nombre}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="apellido"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Apellido
-              </label>
-              <input
-                id="apellido"
-                name="apellido"
-                type="text"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Apellido"
-                value={formData.persona.apellido}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="telefono"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Numero telefonico
-              </label>
-              <input
-                id="telefono"
-                name="telefono"
-                type="number"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Numero telefonico"
-                value={formData.persona.telefono}
-                onChange={handleChange}
-              />
-            </div>
+            <FormInput
+              label="Nombre de usuario"
+              name="username"
+              type="text"
+              required
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              error={error && !formData.username ? error : undefined}
+            />
+            <FormInput
+              label="Contraseña"
+              name="password"
+              type="password"
+              required
+              placeholder="Contraseña"
+              value={formData.password}
+              onChange={handleChange}
+              error={error && !formData.password ? error : undefined}
+            />
+            <FormInput
+              label="Email"
+              name="email"
+              type="email"
+              required
+              placeholder="Correo electrónico"
+              value={formData.email}
+              onChange={handleChange}
+              error={error && !formData.email ? error : undefined}
+            />
+            <FormInput
+              label="Nombre"
+              name="nombre"
+              type="text"
+              required
+              placeholder="Nombre"
+              value={formData.persona.nombre}
+              onChange={handleChange}
+              error={error && !formData.persona.nombre ? error : undefined}
+            />
+            <FormInput
+              label="Apellido"
+              name="apellido"
+              type="text"
+              required
+              placeholder="Apellido"
+              value={formData.persona.apellido}
+              onChange={handleChange}
+              error={error && !formData.persona.apellido ? error : undefined}
+            />
+            <FormInput
+              label="Numero telefonico"
+              name="telefono"
+              type="number"
+              required
+              placeholder="Numero telefonico"
+              value={formData.persona.telefono}
+              onChange={handleChange}
+              error={error && !formData.persona.telefono ? error : undefined}
+            />
           </div>
 
           {error && (
@@ -215,13 +162,13 @@ export default function RegisterPage() {
           )}
 
           <div>
-            <button
+            <ButtonInput
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={loading}
+              className="w-full flex justify-center"
             >
-              {loading ? "Creando cuenta..." : "Crear Cuenta"}
-            </button>
+              Crear Cuenta
+            </ButtonInput>
           </div>
 
           <div className="text-center">

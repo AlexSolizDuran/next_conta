@@ -5,6 +5,7 @@ import useSWR, { mutate } from "swr";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { PaginatedResponse } from "@/types/paginacion";
 import { ClaseCuentaGet } from "@/types/cuenta/clase_cuenta";
+import ButtonInput from "@/components/ButtonInput"
 
 export default function ClaseCuentaPage() {
   const [page, setPage] = useState(1);
@@ -88,12 +89,13 @@ export default function ClaseCuentaPage() {
       <h1 className="text-2xl font-bold text-blue-900 mb-4">Gestión de Clases de Cuenta</h1>
 
       {/* Botón Crear */}
-      <button
+      <ButtonInput
+        type="button"
         onClick={() => setShowCreateModal(true)}
-        className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+        className="inline-block mb-4"
       >
         Añadir Clase de Cuenta
-      </button>
+      </ButtonInput>
 
       <div className="overflow-x-auto shadow rounded-2xl">
         <table className="w-full table-auto border-collapse border border-gray-300">

@@ -8,14 +8,12 @@ import { EmpresaList } from "@/types/empresa/empresa";
 import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
 import { LoginEmpresa } from "@/types/empresa/login_empresa";
 import CrearEmpresaModal from "@/components/modals/EmpresaModal";
+import ButtonInput from "@/components/ButtonInput";
 
 export default function EmpresasPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
-  const [selectedEmpresaId, setSelectedEmpresaId] = useState<string | null>(
-    null
-  );
-  const [loading, setLoading] = useState(false);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const url = '/api/empresa/mis_empresas'
   
@@ -26,23 +24,16 @@ export default function EmpresasPage() {
     isLoading: empresasLoading,
   } = useSWR<EmpresaList[]>(url, apiFetcher);
 
-  const handleEmpresaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedEmpresaId(e.target.value);
-  };
   const handleCreated = () => {
     mutate(url); // SWR vuelve a hacer fetch de /api/empresas
   };
-  const handleSelectEmpresa = async () => {
-    if (!selectedEmpresaId) {
-      setError("Selecciona una empresa para continuar");
-      return;
-    }
 
-    setLoading(true);
+  const handleSelectEmpresa = async (empresaId: string) => {
+    setLoadingId(empresaId);
     setError("");
 
     try {
-      const payload: LoginEmpresa = { empresa_id: selectedEmpresaId };
+      const payload: LoginEmpresa = { empresa_id: empresaId };
 
       // POST al login de la empresa enviando ID en el body
       const result = await apiFetcher<UserEmpresaData>(
@@ -62,7 +53,7 @@ export default function EmpresasPage() {
       console.error("Error seleccionando empresa:", err);
       setError(err.message || "Error de conexión");
     } finally {
-      setLoading(false);
+      setLoadingId(null);
     }
   };
 
@@ -70,12 +61,13 @@ export default function EmpresasPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <button
+          <ButtonInput
+            type="button"
             onClick={() => setModalOpen(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="px-4 py-2 mb-2"
           >
             Nueva Empresa
-          </button>
+          </ButtonInput>
 
           <CrearEmpresaModal
             isOpen={modalOpen}
@@ -102,33 +94,37 @@ export default function EmpresasPage() {
         )}
 
         {empresas && empresas.length > 0 && (
-          <div className="mt-4 space-y-4">
-            <select
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              value={selectedEmpresaId || ""}
-              onChange={handleEmpresaChange}
-            >
-              <option value="" disabled>
-                -- Selecciona --
-              </option>
-              {empresas.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.nombre}
-                </option>
-              ))}
-            </select>
-
+          <div className="mt-4">
+            <table className="min-w-full divide-y divide-gray-200 border rounded-md">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Empresa
+                  </th>
+                  <th className="px-4 py-2"></th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {empresas.map((emp) => (
+                  <tr key={emp.id}>
+                    <td className="px-4 py-2">{emp.nombre}</td>
+                    <td className="px-4 py-2 text-right">
+                      <ButtonInput
+                        type="button"
+                        onClick={() => handleSelectEmpresa(emp.id)}
+                        loading={loadingId === emp.id}
+                        className="w-full"
+                      >
+                        Ingresar
+                      </ButtonInput>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             {error && (
-              <div className="text-red-600 text-sm text-center">{error}</div>
+              <div className="text-red-600 text-sm text-center mt-2">{error}</div>
             )}
-
-            <button
-              onClick={handleSelectEmpresa}
-              disabled={!selectedEmpresaId || loading}
-              className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Cargando..." : "Entrar a la empresa"}
-            </button>
           </div>
         )}
       </div>

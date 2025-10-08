@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { EmpresaSet } from "@/types/empresa/empresa";
+import FormInput from "@/components/FormInput";
+import ButtonInput from "@/components/ButtonInput";
 
 interface CrearEmpresaModalProps {
   isOpen: boolean;
@@ -22,22 +24,23 @@ export default function CrearEmpresaModal({
   const [error, setError] = useState("");
 
   if (!isOpen) return null; // no renderiza si no está abierto
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmpresa({ ...empresa, [e.target.name]: e.target.value });
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-
       await apiFetcher("/api/empresa/empresa", {
         method: "POST",
         body: JSON.stringify(empresa),
       });
 
-      setEmpresa({nombre:''});
+      setEmpresa({ nombre: "" });
       onClose();
       if (onCreated) onCreated();
     } catch (err: any) {
@@ -56,23 +59,16 @@ export default function CrearEmpresaModal({
         {error && <div className="text-red-600 mb-2">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="nombre"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Nombre de la empresa
-            </label>
-            <input
-              id="nombre"
-              name="nombre"
-              type="text"
-              value={empresa.nombre}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            />
-          </div>
+          <FormInput
+            label="Nombre de la empresa"
+            name="nombre"
+            type="text"
+            value={empresa.nombre}
+            onChange={handleChange}
+            required
+            placeholder="Nombre de la empresa"
+            error={error && !empresa.nombre ? error : undefined}
+          />
 
           <div className="flex justify-end space-x-2">
             <button
@@ -82,13 +78,13 @@ export default function CrearEmpresaModal({
             >
               Cancelar
             </button>
-            <button
+            <ButtonInput
               type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+              loading={loading}
+              className="px-4 py-2"
             >
-              {loading ? "Creando..." : "Crear"}
-            </button>
+              Crear
+            </ButtonInput>
           </div>
         </form>
       </div>
