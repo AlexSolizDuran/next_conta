@@ -28,6 +28,7 @@ import {
   ArrowRightIcon,
   FileIcon,
 } from "lucide-react";
+import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
 // Iconos de ejemplo (puedes usar react-icons, heroicons, etc.)
 
 // Cambiado a un ícono de flecha SVG para un look más moderno
@@ -42,13 +43,14 @@ interface SidebarProps {
 
 export default function Sidebar({ variant = "admin" }: SidebarProps) {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<UserEmpresaData>();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   const toggleSubmenu = (name: string) => {
     setOpenSubmenu(openSubmenu === name ? null : name);
   };
 
+  const [openMenu, setOpenMenu] = useState(false);
   const router = useRouter();
   const handleLogout = () => {
     fetch("/api/logout", {
@@ -74,7 +76,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
     },
     {
       name: "Registro Contable",
-      icon: <CreditCardIcon/>,
+      icon: <CreditCardIcon />,
       children: [
         {
           name: "Asientos",
@@ -88,7 +90,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
     },
     {
       name: "Libros",
-      icon: <FileIcon/>,
+      icon: <FileIcon />,
       children: [
         {
           name: "Libro Mayor",
@@ -120,7 +122,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
           onClick={() => setOpen(true)}
           aria-label="Abrir menú"
         >
-          <ArrowRightIcon/>
+          <ArrowRightIcon />
         </button>
         {open && (
           <div
@@ -136,7 +138,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full"
         } fixed top-0 left-0 w-64 h-screen bg-primario shadow-lg z-20 transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:translate-x-0 md:flex md:flex-col md:h-screen overflow-y-auto`}
       >
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-3   ">
           <h1 className="font-bold text-xl text-gray-800 dark:text-white">
             Menu
           </h1>
@@ -149,18 +151,60 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
           </button>
         </div>
         {user && (
-          <div className="p-4 ">
-            <p className="font-semibold text-white">
-              {user.nombre} {user.apellido}
-            </p>
-            <p className="text-xs text-white">{user.email}</p>
-
-            <button
-              onClick={handleLogout}
-              className=" text-xs p-1 text-white hover:text-black cursor-pointer rounded-md"
+          <div className="relative p-4">
+            <div
+              onClick={() => setOpenMenu((prev) => !prev)}
+              className="bg-white/10 backdrop-blur-md rounded-xl p-4 flex items-center justify-between shadow-lg cursor-pointer hover:bg-white/20 transition"
             >
-              Cerrar sesión
-            </button>
+              <div>
+                <p className="font-semibold text-white">
+                  {user.usuario.persona.nombre} {user.usuario.persona.apellido}
+                </p>
+                <p className="text-xs text-gray-200">{user.usuario.email}</p>
+              </div>
+
+              {/* Ícono de menú desplegable */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className={`w-5 h-5 text-white transition-transform duration-200 ${
+                  openMenu ? "rotate-180" : ""
+                }`}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 9l6 6 6-6"
+                />
+              </svg>
+            </div>
+
+            {/* Menú desplegable */}
+            {openMenu && (
+              <div className="absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-xl overflow-hidden z-50 animate-fade-in">
+                <Link
+                  href={"/perfil/mis_empresas"}
+                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 text-sm"
+                >
+                  Mis Empresas
+                </Link>
+                <Link
+                  href={"/librovivo/configuracion"}
+                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 text-sm"
+                >
+                  Configuración
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 text-sm"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -183,7 +227,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
                         openSubmenu === item.name ? "rotate-90" : ""
                       }`}
                     >
-                      <ArrowDownIcon/>
+                      <ArrowDownIcon />
                     </span>
                   </button>
 
@@ -196,7 +240,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
                     }`}
                   >
                     {item.children.map((sub, j) => (
-                      <Link 
+                      <Link
                         key={j}
                         href={sub.href}
                         onClick={() => setOpen(false)}
