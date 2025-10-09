@@ -26,6 +26,7 @@ import {
   ArrowBigRightIcon,
   ArrowRight,
   ArrowRightIcon,
+  FileIcon,
 } from "lucide-react";
 // Iconos de ejemplo (puedes usar react-icons, heroicons, etc.)
 
@@ -82,6 +83,20 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         {
           name: "Movimientos",
           href: "/librovivo/asiento_contable/movimiento",
+        },
+      ],
+    },
+    {
+      name: "Libros",
+      icon: <FileIcon/>,
+      children: [
+        {
+          name: "Libro Mayor",
+          href: "/librovivo/libro/libro_mayor",
+        },
+        {
+          name: "Libro Diario",
+          href: "/librovivo/libro/libro_diario",
         },
       ],
     },

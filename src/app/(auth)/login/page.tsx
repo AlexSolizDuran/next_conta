@@ -34,7 +34,7 @@ export default function LoginPage() {
         method: 'POST',
         body: JSON.stringify(loginData),
       });
-
+      console.log('primer login',result)
       localStorage.setItem("user", JSON.stringify(result));
 
       router.push('/perfil/mis_empresas');

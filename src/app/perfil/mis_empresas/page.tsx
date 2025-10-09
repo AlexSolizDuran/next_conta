@@ -55,7 +55,7 @@ export default function EmpresasPage() {
 
       // Guardar UserEmpresaData completo en localStorage
       localStorage.setItem("user", JSON.stringify(result));
-
+      console.log(result)
       // Redirigir al dashboard
       router.push("/librovivo/dashboard");
     } catch (err: any) {
