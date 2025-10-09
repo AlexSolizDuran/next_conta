@@ -25,7 +25,7 @@ interface MovimientoList{
     cuenta:CuentaList,
     debe:number,
     haber:number,
-    asiento:AsientoMov
+    asiento?:AsientoMov
 }
 
 export type {MovimientoSet,MovimientoList,MovimientoGet}

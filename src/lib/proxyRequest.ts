@@ -35,6 +35,7 @@ export async function proxyToBackend(
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (err: any) {
+    console.log(err);
     console.error(`Error proxy a ${endpoint}:`, err);
     return NextResponse.json(
       { message: "Error interno del servidor" },

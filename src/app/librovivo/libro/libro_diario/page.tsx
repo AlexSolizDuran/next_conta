@@ -2,6 +2,7 @@
 
 import { apiFetcher } from "@/lib/apiFetcher";
 import { MovimientoList } from "@/types/asiento/movimiento";
+import { LibroDiario } from "@/types/libro/libroDiario";
 import { PaginatedResponse } from "@/types/paginacion";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,15 +15,15 @@ export default function MovimientosPage() {
   >("asiento_contable__numero");
   const [sortAsc, setSortAsc] = useState(true);
 
-  const url = `/api/asiento_contable/movimiento/?page=${page}&ordering=${
+  const url = `/api/libro/libro_diario/?page=${page}&ordering=${
     sortAsc ? sortField : `-${sortField}`
   }`;
 
   const {
-    data: movimientos,
+    data: libro_diario,
     error,
     isLoading,
-  } = useSWR<PaginatedResponse<MovimientoList>>(url, apiFetcher);
+  } = useSWR<PaginatedResponse<LibroDiario>>(url, apiFetcher);
 
   const toggleSort = (field: "asiento_contable__numero" | "asiento_contable__fecha") => {
     if (sortField === field) {
@@ -35,17 +36,17 @@ export default function MovimientosPage() {
   if (error)
     return (
       <div className="text-center p-10 text-red-500">
-        Error al cargar los movimientos: {error.message}
+        Error al cargar el Libro Diario: {error.message}
       </div>
     );
 
-  if (!movimientos)
-    return <div className="text-center p-10">Cargando movimientos...</div>;
+  if (!libro_diario)
+    return <div className="text-center p-10">Cargando Libro Diario...</div>;
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-blue-900 mb-4">
-        Gestión de Movimientos
+            Libro Diario
       </h1>
 
       <table className="w-full table-auto border-collapse border border-gray-300">
@@ -77,12 +78,12 @@ export default function MovimientosPage() {
             </th>
 
             <th className="border border-gray-300 px-4 py-2 text-left">
-              Acciones
+              Detalle
             </th>
           </tr>
         </thead>
         <tbody>
-          {movimientos.results.map((mov) => (
+          {libro_diario.results.map((mov) => (
             <tr key={mov.id} className="hover:bg-gray-50">
               <td className="border border-gray-300 px-4 py-2">
                 {mov.asiento?.numero || "—"}
@@ -118,7 +119,7 @@ export default function MovimientosPage() {
       </table>
 
       {/* Mensaje si no hay resultados */}
-      {!isLoading && movimientos.results.length === 0 && (
+      {!isLoading && libro_diario.results.length === 0 && (
         <div className="text-center py-10 bg-white rounded-lg shadow">
           <p className="text-gray-500">
             No se encontraron movimientos registrados.
@@ -130,7 +131,7 @@ export default function MovimientosPage() {
       <div className="flex justify-center mt-6 gap-2">
         <button
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
-          disabled={!movimientos.previous}
+          disabled={!libro_diario.previous}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Anterior
@@ -138,7 +139,7 @@ export default function MovimientosPage() {
         <span className="px-3 py-1 border rounded bg-gray-100">{page}</span>
         <button
           onClick={() => setPage((p) => p + 1)}
-          disabled={!movimientos.next}
+          disabled={!libro_diario.next}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Siguiente

@@ -1,7 +1,5 @@
 "use client";
 
-import Sidebar from "@/components/Sidebar";
-import { ColoresProvider } from "@/context/ColoresContext";
 
 export default function RootLayout({
   children,

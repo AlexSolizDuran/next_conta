@@ -9,4 +9,5 @@ interface CustomGet{
     color_secundario:string,
     color_terciario:string
 }
+
 export type {CustomSet,CustomGet}

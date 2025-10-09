@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       access: token,
       empresa: data.empresa,
-      user_empresa: data.empresa,
+      user_empresa: data.user_empresa,
       usuario: data.usuario,
       roles: data.roles,
       custom: data.custom,

@@ -5,17 +5,45 @@ import useSWR, { mutate } from "swr";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { PaginatedResponse } from "@/types/paginacion";
 import { CuentaList } from "@/types/cuenta/cuenta";
+import { ArbolCuenta } from "@/types/cuenta/arbol_cuenta";
+import ArbolCuentas from "@/components/ArbolCuenta";
 
 export default function CuentaPage() {
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
-  const [newCuenta, setNewCuenta] = useState({ codigo: "", nombre: "", estado: "ACTIVO" });
-  const url = `/api/cuenta_contable/cuenta/?page=${page}`;
+  const [mostrarTodas, setMostrarTodas] = useState(false);
 
-  const { data: cuentas, error, isLoading } = useSWR<PaginatedResponse<CuentaList>>(url, apiFetcher);
+  const [newCuenta, setNewCuenta] = useState({
+    codigo: "",
+    nombre: "",
+    estado: "ACTIVO",
+  });
+  const [claseSeleccionada, setClaseSeleccionada] =
+    useState<ArbolCuenta | null>(null);
 
+  // URL de SWR con filtro por clase seleccionada
+  const url = mostrarTodas
+    ? `/api/cuenta_contable/cuenta/?page=${page}` // ignorar filtro
+    : `/api/cuenta_contable/cuenta/?page=${page}${
+        claseSeleccionada ? `&clase_id=${claseSeleccionada.id}` : ""
+      }`;
+
+  const {
+    data: cuentas,
+    error: cuentaError,
+    isLoading: cuentaLoading,
+  } = useSWR<PaginatedResponse<CuentaList>>(url, apiFetcher);
+
+  const arbolUrl = "/api/cuenta_contable/clase_cuenta/arbol_cuenta";
+  const {
+    data: arbol,
+    error: arbolError,
+    isLoading: arbolLoading,
+  } = useSWR<ArbolCuenta[]>(arbolUrl, apiFetcher);
   // --- Manejar cambios del formulario ---
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setNewCuenta((prev) => ({ ...prev, [name]: value }));
   };
@@ -30,18 +58,48 @@ export default function CuentaPage() {
       mutate(url); // refrescar la lista
       setShowModal(false);
       setNewCuenta({ codigo: "", nombre: "", estado: "ACTIVO" });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     }
   };
 
-  if (error)
-    return <div className="text-center p-10 text-red-500">Error al cargar las cuentas: {error.message}</div>;
-  if (!cuentas) return <div className="text-center p-10">Cargando cuentas...</div>;
-
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-blue-900 mb-4">Gestión de Cuentas</h1>
+      <h1 className="text-2xl font-bold text-blue-900 mb-4">
+        Gestión de Cuentas
+      </h1>
+
+      {/* Árbol de clases de cuenta */}
+      <div className="mb-4 p-4 border rounded shadow">
+        <h2 className="font-semibold mb-2">Filtrar por Clase de Cuenta</h2>
+        <button
+          className="px-3 py-1 cursor-pointer"
+          onClick={() => {
+            setMostrarTodas(true);
+            setClaseSeleccionada(null);
+            setPage(1); // resetear paginación
+          }}
+        >
+          Todos
+        </button>
+        <ArbolCuentas
+          cuentas={arbol || []}
+          onSelect={(clase) => {
+            setClaseSeleccionada(clase); // aplicamos filtro directamente
+            setMostrarTodas(false); // desactivamos "mostrar todas"
+            setPage(1); // resetear paginación
+          }}
+        />
+
+        {claseSeleccionada && (
+          <div className="mt-2 text-sm text-gray-700">
+            Filtrando por:{" "}
+            <strong>
+              {claseSeleccionada.nombre} ({claseSeleccionada.codigo})
+            </strong>
+          </div>
+        )}
+      </div>
 
       <button
         onClick={() => setShowModal(true)}
@@ -55,18 +113,32 @@ export default function CuentaPage() {
         <table className="w-full table-auto border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">Código</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Nombre</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Estado</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Acciones</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Código
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Nombre
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Estado
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody>
-            {cuentas.results.map((cuenta) => (
+            {cuentas?.results.map((cuenta) => (
               <tr key={cuenta.id} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-2">{cuenta.codigo}</td>
-                <td className="border border-gray-300 px-4 py-2">{cuenta.nombre}</td>
-                <td className="border border-gray-300 px-4 py-2">{cuenta.estado}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {cuenta.codigo}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {cuenta.nombre}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {cuenta.estado}
+                </td>
                 <td className="border border-gray-300 px-4 py-2">
                   <a
                     href={`/librovivo/cuenta_contable/cuenta/${cuenta.id}`}
@@ -85,7 +157,7 @@ export default function CuentaPage() {
       <div className="flex justify-center mt-6 gap-2">
         <button
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
-          disabled={!cuentas.previous}
+          disabled={!cuentas?.previous}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Anterior
@@ -93,7 +165,7 @@ export default function CuentaPage() {
         <span className="px-3 py-1 border rounded bg-gray-100">{page}</span>
         <button
           onClick={() => setPage((p) => p + 1)}
-          disabled={!cuentas.next}
+          disabled={!cuentas?.next}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Siguiente
@@ -107,7 +179,9 @@ export default function CuentaPage() {
             <h2 className="text-xl font-bold mb-4">Crear Nueva Cuenta</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Código</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Código
+                </label>
                 <input
                   type="text"
                   name="codigo"
@@ -118,7 +192,9 @@ export default function CuentaPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nombre
+                </label>
                 <input
                   type="text"
                   name="nombre"
@@ -129,7 +205,9 @@ export default function CuentaPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Estado</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Estado
+                </label>
                 <select
                   name="estado"
                   value={newCuenta.estado}
