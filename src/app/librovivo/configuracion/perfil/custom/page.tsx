@@ -26,10 +26,11 @@ export default function CustomColorsPage() {
     const userString = localStorage.getItem("user");
     const user: UserEmpresaData = JSON.parse(userString || "");
     const userEmpresaId = user.user_empresa;
-
+    console.log("el id es " , userEmpresaId)
+    console.log("el custom es " , id)
     try {
       await apiFetcher(`/api/empresa/user_empresa/${userEmpresaId}/`, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify({ custom: id }),
       });
       user.custom.id = id;
@@ -71,7 +72,7 @@ export default function CustomColorsPage() {
                     className="w-6 h-6 rounded"
                     style={{ backgroundColor: item.color_primario }}
                   />
-                  <span>{item.color_primario}</span>
+                  
                 </div>
               </td>
               <td className="border border-gray-300 px-4 py-2">
@@ -80,16 +81,16 @@ export default function CustomColorsPage() {
                     className="w-6 h-6 rounded"
                     style={{ backgroundColor: item.color_secundario }}
                   />
-                  <span>{item.color_secundario}</span>
+                  
                 </div>
               </td>
               <td className="border border-gray-300 px-4 py-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center  gap-2">
                   <div
                     className="w-6 h-6 rounded"
                     style={{ backgroundColor: item.color_terciario }}
                   />
-                  <span>{item.color_terciario}</span>
+                  
                 </div>
               </td>
               <td className="border border-gray-300 px-4 py-2">

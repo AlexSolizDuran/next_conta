@@ -22,11 +22,9 @@ export default function Page() {
           className="block bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-6 border border-gray-100 hover:border-green-400"
         >
           <h2 className="text-lg font-medium text-gray-800 mb-2">
-            Configuración de Perfil
+            Configuración de Colores
           </h2>
-          <p className="text-sm text-gray-500">
-            Administra tu información personal y preferencias de usuario.
-          </p>
+          
         </Link>
 
         <Link

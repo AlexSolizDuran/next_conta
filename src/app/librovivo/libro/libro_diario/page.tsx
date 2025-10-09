@@ -10,14 +10,23 @@ import useSWR from "swr";
 
 export default function MovimientosPage() {
   const [page, setPage] = useState(1);
+  const hoy = new Date();
+  const hoyStr = hoy.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
   const [sortField, setSortField] = useState<
     "asiento_contable__numero" | "asiento_contable__fecha"
   >("asiento_contable__numero");
   const [sortAsc, setSortAsc] = useState(true);
 
-  const url = `/api/libro/libro_diario/?page=${page}&ordering=${
-    sortAsc ? sortField : `-${sortField}`
-  }`;
+  const [fechaInicio, setFechaInicio] = useState("2010-01-01");
+  const [fechaFin, setFechaFin] = useState(hoyStr);
+
+  const url =
+    `/api/libro/libro_diario/?page=${page}&ordering=${
+      sortAsc ? sortField : `-${sortField}`
+    }` +
+    `${fechaInicio ? `&fecha_inicio=${fechaInicio}` : ""}` +
+    `${fechaFin ? `&fecha_fin=${fechaFin}` : ""}`;
 
   const {
     data: libro_diario,
@@ -25,7 +34,9 @@ export default function MovimientosPage() {
     isLoading,
   } = useSWR<PaginatedResponse<LibroDiario>>(url, apiFetcher);
 
-  const toggleSort = (field: "asiento_contable__numero" | "asiento_contable__fecha") => {
+  const toggleSort = (
+    field: "asiento_contable__numero" | "asiento_contable__fecha"
+  ) => {
     if (sortField === field) {
       setSortAsc(!sortAsc); // si ya es el mismo campo, invertir
     } else {
@@ -45,9 +56,39 @@ export default function MovimientosPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-blue-900 mb-4">
-            Libro Diario
-      </h1>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-blue-900 mb-4">Libro Diario</h1>
+
+        {/* Filtros de fecha */}
+        <div className="mb-4 flex gap-2 items-end">
+          <div>
+            <label className="block text-sm font-medium">Fecha inicio</label>
+            <input
+              type="date"
+              value={fechaInicio}
+              onChange={(e) => setFechaInicio(e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Fecha fin</label>
+            <input
+              type="date"
+              value={fechaFin}
+              onChange={(e) => setFechaFin(e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
+          </div>
+          <button
+            onClick={() => setPage(1)} // resetear página al filtrar
+            className="bg-blue-600 text-white px-3 py-1 rounded"
+          >
+            Filtrar
+          </button>
+        </div>
+
+        {/* Aquí va tu tabla y resto del código */}
+      </div>
 
       <table className="w-full table-auto border-collapse border border-gray-300">
         <thead>
@@ -56,13 +97,23 @@ export default function MovimientosPage() {
               className="border border-gray-300 px-4 py-2 text-left cursor-pointer"
               onClick={() => toggleSort("asiento_contable__numero")}
             >
-              Numero {sortField === "asiento_contable__numero" ? (sortAsc ? "↑" : "↓") : ""}
+              Numero{" "}
+              {sortField === "asiento_contable__numero"
+                ? sortAsc
+                  ? "↑"
+                  : "↓"
+                : ""}
             </th>
             <th
               className="border border-gray-300 px-4 py-2 text-left cursor-pointer"
               onClick={() => toggleSort("asiento_contable__fecha")}
             >
-              Fecha {sortField === "asiento_contable__fecha" ? (sortAsc ? "↑" : "↓") : ""}
+              Fecha{" "}
+              {sortField === "asiento_contable__fecha"
+                ? sortAsc
+                  ? "↑"
+                  : "↓"
+                : ""}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left">
               Referencia
