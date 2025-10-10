@@ -6,6 +6,9 @@ import { PaginatedResponse } from "@/types/paginacion";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
+import ButtonInput from "@/components/ButtonInput";
+import TableList from "@/components/TableList";
+import { Eye } from "lucide-react"; // Importa el icono de Lucide
 
 export default function AsientoPage() {
   const [page, setPage] = useState(1);
@@ -27,71 +30,55 @@ export default function AsientoPage() {
   if (!asientos)
     return <div className="text-center p-10">Cargando asientos...</div>;
 
+  // Columnas para TableList
+  const columns = [
+    {
+      key: "numero",
+      header: "Numero",
+    },
+    {
+      key: "fecha",
+      header: "Fecha",
+    },
+    {
+      key: "descripcion",
+      header: "Descripción",
+    },
+    {
+      key: "estado",
+      header: "Estado",
+    },
+    {
+      key: "acciones",
+      header: "Acciones",
+      render: (asiento: AsientoList) => (
+        <Link
+          key={asiento.id}
+          href={`/librovivo/asiento_contable/asiento/${asiento.id}`}
+          className="flex items-center gap-2 text-blue-600 hover:underline"
+        >
+          <Eye className="w-5 h-5" />
+        </Link>
+      ),
+    },
+  ];
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-blue-900 mb-4">
         Gestión de Asientos
       </h1>
-      <Link
-      href={"/librovivo/asiento_contable/asiento/crear"}>
-        añadir
+      <Link href={"/librovivo/asiento_contable/asiento/crear"}>
+        <ButtonInput className="mb-4 bg-green-600 text-white hover:bg-green-700">
+          Añadir
+        </ButtonInput>
       </Link>
-      <table className="w-full table-auto border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-4 py-2 text-left">Numero</th>
-            <th className="border border-gray-300 px-4 py-2 text-left">
-              Fecha
-            </th>
-            <th className="border border-gray-300 px-4 py-2 text-left">
-              Descripción
-            </th>
-            <th className="border border-gray-300 px-4 py-2 text-left">
-              Estado
-            </th>
-            <th className="border border-gray-300 px-4 py-2 text-left">
-              Acciones
-            </th>
-
-            {/* agrega más columnas según tu modelo */}
-          </tr>
-        </thead>
-        <tbody>
-          {asientos.results.map((asiento) => (
-            <tr key={asiento.id} className="hover:bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2">{asiento.numero}</td>
-              <td className="border border-gray-300 px-4 py-2">
-                {asiento.fecha}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {asiento.descripcion}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {asiento.estado}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                <Link
-                  key={asiento.id}
-                  href={`/librovivo/asiento_contable/asiento/${asiento.id}`}
-                  
-                  className="flex items-center p-2 text-white hover:text-blue-900 hover:bg-white rounded-md transition-colors"
-                >
-                  Ver
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Mensaje si no hay resultados */}
-      {!isLoading && asientos.results.length === 0 && (
-        <div className="text-center py-10 bg-white rounded-lg shadow">
-          <p className="text-gray-500">
-            No se encontraron Asientos registrados.
-          </p>
-        </div>
-      )}
+      <TableList
+        columns={columns}
+        data={asientos.results}
+        rowKey={(item) => item.id}
+        emptyMessage="No se encontraron Asientos registrados."
+      />
 
       {/* Paginación */}
       <div className="flex justify-center mt-6 gap-2">

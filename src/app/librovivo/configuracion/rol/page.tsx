@@ -1,13 +1,15 @@
-
-
 "use client";
 
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { PaginatedResponse } from "@/types/paginacion";
-import {  RolEmpresaList, RolEmpresaSet } from "@/types/empresa/rol_empresa";
+import { RolEmpresaList, RolEmpresaSet } from "@/types/empresa/rol_empresa";
 import Link from "next/link";
+import ButtonInput from "@/components/ButtonInput";
+import ButtonEdit from "@/components/ButtonEdit";
+import ButtonDelete from "@/components/ButtonDelete";
+import TableList from "@/components/TableList";
 
 export default function rolCuentaPage() {
   const [page, setPage] = useState(1);
@@ -16,11 +18,9 @@ export default function rolCuentaPage() {
   const [formData, setFormData] = useState({ nombre: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const url = `/api/empresa/rol_empresa`
-  
+  const url = `/api/empresa/rol_empresa`;
   const urlPage = `${url}/?page=${page}`;
 
-  
   const { data: roles, error, isLoading } = useSWR<PaginatedResponse<RolEmpresaList>>(urlPage, apiFetcher);
 
   const handleDelete = async (id: string) => {
@@ -65,7 +65,7 @@ export default function rolCuentaPage() {
         body: JSON.stringify({ nombre: formData.nombre }),
       });
       setShowEditModal(null);
-      setFormData({  nombre: "" });
+      setFormData({ nombre: "" });
       mutate(urlPage);
     } catch (err) {
       console.error(err);
@@ -90,68 +90,63 @@ export default function rolCuentaPage() {
   if (!roles)
     return <div className="text-center p-10">Cargando Roles...</div>;
 
+  // Columnas para TableList
+  const columns = [
+    {
+      key: "nombre",
+      header: "Nombre",
+    },
+    {
+      key: "acciones",
+      header: "Acciones",
+      render: (rol: RolEmpresaList) => (
+        <div className="flex gap-2">
+          <ButtonEdit onClick={() => openEditModal(rol)}>
+            Editar
+          </ButtonEdit>
+          <ButtonDelete onClick={() => handleDelete(rol.id)}>
+            Eliminar
+          </ButtonDelete>
+          <Link
+            href={`/librovivo/configuracion/rol/${rol.id}/asignar_usuario/`}
+            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
+          >
+            Asignar rol
+          </Link>
+          <Link
+            href={`/librovivo/configuracion/rol/${rol.id}/asignar_permiso/`}
+            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
+          >
+            Asignar permiso
+          </Link>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-blue-900 mb-4">Gestión de Roles</h1>
 
       {/* Botón Crear */}
-      <button
+      <ButtonInput
         onClick={() => setShowCreateModal(true)}
         className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
       >
         Añadir Rol
-      </button>
+      </ButtonInput>
 
-      <div className="overflow-x-auto shadow rounded-2xl">
-        <table className="w-full table-auto border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              
-              <th className="border border-gray-300 px-4 py-2 text-left">Nombre</th>
-              
-              <th className="border border-gray-300 px-4 py-2 text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {roles.results.map((rol) => (
-              <tr key={rol.id} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-2">{rol.nombre}</td>
-                <td className="border border-gray-300 px-4 py-2 flex gap-2">
-                  <button
-                    onClick={() => openEditModal(rol)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(rol.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-                  >
-                    Eliminar
-                  </button>
-                  <Link
-                    href={`/librovivo/configuracion/rol/${rol.id}/asignar_usuario/`}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-                  >
-                    Asignar rol
-                  </Link>
-                  <Link
-                    href={`/librovivo/configuracion/rol/${rol.id}/asignar_permiso/`}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-                  >
-                    Asignar permiso
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TableList
+        columns={columns}
+        data={roles.results}
+        rowKey={(item) => item.id}
+        emptyMessage="No se encontraron roles de cuenta registradas."
+      />
 
       {/* Mensaje si no hay resultados */}
       {!isLoading && roles.results.length === 0 && (
         <div className="text-center py-10 bg-white rounded-lg shadow">
-          <p className="text-gray-500">No se encontraron rols de cuenta registradas.</p>
+          <p className="text-gray-500">No se encontraron roles de cuenta registradas.</p>
         </div>
       )}
 
@@ -196,13 +191,13 @@ export default function rolCuentaPage() {
               >
                 Cancelar
               </button>
-              <button
+              <ButtonInput
                 onClick={handleCreate}
                 disabled={isSubmitting || !formData.nombre}
                 className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : "Guardar"}
-              </button>
+              </ButtonInput>
             </div>
           </div>
         </div>
@@ -214,7 +209,6 @@ export default function rolCuentaPage() {
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h2 className="text-lg font-bold mb-4">Editar rol de Cuenta</h2>
             <div className="flex flex-col gap-3 mb-4">
-              
               <input
                 type="text"
                 name="nombre"
@@ -231,13 +225,13 @@ export default function rolCuentaPage() {
               >
                 Cancelar
               </button>
-              <button
+              <ButtonInput
                 onClick={handleEdit}
-                disabled={isSubmitting  || !formData.nombre}
+                disabled={isSubmitting || !formData.nombre}
                 className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : "Guardar cambios"}
-              </button>
+              </ButtonInput>
             </div>
           </div>
         </div>

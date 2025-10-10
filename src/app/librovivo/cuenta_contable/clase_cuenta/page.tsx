@@ -5,7 +5,11 @@ import useSWR, { mutate } from "swr";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { PaginatedResponse } from "@/types/paginacion";
 import { ClaseCuentaGet } from "@/types/cuenta/clase_cuenta";
-import ButtonInput from "@/components/ButtonInput"
+import ButtonInput from "@/components/ButtonInput";
+import ButtonDelete from "@/components/ButtonDelete";
+import ButtonEdit from "@/components/ButtonEdit";
+import TableList from "@/components/TableList";
+import FormInput from "@/components/FormInput";
 
 export default function ClaseCuentaPage() {
   const [page, setPage] = useState(1);
@@ -13,18 +17,22 @@ export default function ClaseCuentaPage() {
   const [showEditModal, setShowEditModal] = useState<ClaseCuentaGet | null>(null);
   const [formData, setFormData] = useState({ codigo: "", nombre: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const url = `/api/cuenta_contable/clase_cuenta/?page=${page}`;
   const { data: clases, error, isLoading } = useSWR<PaginatedResponse<ClaseCuentaGet>>(url, apiFetcher);
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Deseas eliminar esta clase de cuenta?")) return;
+    setDeletingId(id);
     try {
       await apiFetcher(`/api/cuenta_contable/clase_cuenta/${id}/`, { method: "DELETE" });
       mutate(url);
     } catch (err) {
       console.error(err);
       alert("Error al eliminar la clase de cuenta");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -84,6 +92,41 @@ export default function ClaseCuentaPage() {
   if (!clases)
     return <div className="text-center p-10">Cargando clases de cuenta...</div>;
 
+  // Definir columnas para TableList
+  const columns = [
+    {
+      key: "codigo",
+      header: "Código",
+    },
+    {
+      key: "nombre",
+      header: "Nombre",
+    },
+    {
+      key: "padre",
+      header: "Padre",
+      render: (item: ClaseCuentaGet) =>
+        item.padre
+          ? `${item.padre.codigo} - ${item.padre.nombre}`
+          : "—",
+    },
+    {
+      key: "acciones",
+      header: "Acciones",
+      render: (item: ClaseCuentaGet) => (
+        <div className="flex gap-2">
+          <ButtonEdit onClick={() => openEditModal(item)}>
+          </ButtonEdit>
+          <ButtonDelete
+            onClick={() => handleDelete(item.id)}
+            loading={deletingId === item.id}
+          >
+          </ButtonDelete>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-blue-900 mb-4">Gestión de Clases de Cuenta</h1>
@@ -97,48 +140,12 @@ export default function ClaseCuentaPage() {
         Añadir Clase de Cuenta
       </ButtonInput>
 
-      <div className="overflow-x-auto shadow rounded-2xl">
-        <table className="w-full table-auto border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">Código</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Nombre</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Padre</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clases.results.map((clase) => (
-              <tr key={clase.id} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-2">{clase.codigo}</td>
-                <td className="border border-gray-300 px-4 py-2">{clase.nombre}</td>
-                <td className="border border-gray-300 px-4 py-2">{clase.padre?.codigo} - {clase.padre?.nombre || "—"}</td>
-                <td className="border border-gray-300 px-4 py-2 flex gap-2">
-                  <button
-                    onClick={() => openEditModal(clase)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(clase.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mensaje si no hay resultados */}
-      {!isLoading && clases.results.length === 0 && (
-        <div className="text-center py-10 bg-white rounded-lg shadow">
-          <p className="text-gray-500">No se encontraron clases de cuenta registradas.</p>
-        </div>
-      )}
+      <TableList
+        columns={columns}
+        data={clases.results}
+        rowKey={(item) => item.id}
+        emptyMessage="No se encontraron clases de cuenta registradas."
+      />
 
       {/* Paginación */}
       <div className="flex justify-center mt-6 gap-2">
@@ -165,21 +172,21 @@ export default function ClaseCuentaPage() {
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h2 className="text-lg font-bold mb-4">Crear Clase de Cuenta</h2>
             <div className="flex flex-col gap-3 mb-4">
-              <input
-                type="text"
+              <FormInput
+                label="Código"
                 name="codigo"
-                placeholder="Código"
                 value={formData.codigo}
                 onChange={handleInputChange}
-                className="border p-2 rounded"
+                required
+                placeholder="Código"
               />
-              <input
-                type="text"
+              <FormInput
+                label="Nombre"
                 name="nombre"
-                placeholder="Nombre"
                 value={formData.nombre}
                 onChange={handleInputChange}
-                className="border p-2 rounded"
+                required
+                placeholder="Nombre"
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -189,13 +196,13 @@ export default function ClaseCuentaPage() {
               >
                 Cancelar
               </button>
-              <button
+              <ButtonInput
                 onClick={handleCreate}
                 disabled={isSubmitting || !formData.codigo || !formData.nombre}
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : "Guardar"}
-              </button>
+              </ButtonInput>
             </div>
           </div>
         </div>
@@ -207,21 +214,21 @@ export default function ClaseCuentaPage() {
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h2 className="text-lg font-bold mb-4">Editar Clase de Cuenta</h2>
             <div className="flex flex-col gap-3 mb-4">
-              <input
-                type="text"
+              <FormInput
+                label="Código"
                 name="codigo"
-                placeholder="Código"
                 value={formData.codigo}
                 onChange={handleInputChange}
-                className="border p-2 rounded"
+                required
+                placeholder="Código"
               />
-              <input
-                type="text"
+              <FormInput
+                label="Nombre"
                 name="nombre"
-                placeholder="Nombre"
                 value={formData.nombre}
                 onChange={handleInputChange}
-                className="border p-2 rounded"
+                required
+                placeholder="Nombre"
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -231,13 +238,13 @@ export default function ClaseCuentaPage() {
               >
                 Cancelar
               </button>
-              <button
+              <ButtonInput
                 onClick={handleEdit}
                 disabled={isSubmitting || !formData.codigo || !formData.nombre}
-                className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
+                className="bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : "Guardar cambios"}
-              </button>
+              </ButtonInput>
             </div>
           </div>
         </div>
