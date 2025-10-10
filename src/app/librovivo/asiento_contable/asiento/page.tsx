@@ -8,7 +8,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import ButtonInput from "@/components/ButtonInput";
 import TableList from "@/components/TableList";
-import { Eye } from "lucide-react"; // Importa el icono de Lucide
+import { Eye } from "lucide-react";
 
 export default function AsientoPage() {
   const [page, setPage] = useState(1);
