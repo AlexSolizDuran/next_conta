@@ -235,8 +235,9 @@ export default function CrearAsientoPage() {
                       </td>
                       <td>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           value={mov.debe}
                           onChange={(e) =>
                             handleMovimientoFieldChange(
@@ -250,8 +251,9 @@ export default function CrearAsientoPage() {
                       </td>
                       <td>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           value={mov.haber}
                           onChange={(e) =>
                             handleMovimientoFieldChange(
@@ -313,7 +315,7 @@ export default function CrearAsientoPage() {
             </div>
             <div className="flex justify-end space-x-3">
               <Link
-                href="/librovivo/asiento_contable/asiento/"
+                href="/asientos-contables"
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
               >
                 Cancelar
