@@ -103,20 +103,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         },
       ],
     },
-    {
-      name: "Reportes",
-      icon: <StarIcon />,
-      children: [
-        {
-          name: "Balance General",
-          href: "/librovivo/reporte/balance_general",
-        },
-        {
-          name: "Estado de Resultado",
-          href: "/librovivo/reporte/estado_resultado",
-        },
-      ],
-    },
+    
   ];
 
   useEffect(() => {
