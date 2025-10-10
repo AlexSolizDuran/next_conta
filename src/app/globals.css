@@ -7,3 +7,10 @@
   --color-secundario: #7DD177;
   --color-terciario: #CBFFC7;
 }
+
+/* Añade las reglas CSS para ocultar las flechas */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
