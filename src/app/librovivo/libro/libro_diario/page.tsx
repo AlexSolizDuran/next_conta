@@ -2,12 +2,24 @@
 
 import { apiFetcher } from "@/lib/apiFetcher";
 import { LibroDiario } from "@/types/libro/libroDiario";
-import { PaginatedResponse } from "@/types/paginacion";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
 import TableList from "@/components/TableList";
 import { Eye } from "lucide-react";
+
+interface Totales{
+  debe_total:number,
+  haber_total:number
+}
+interface PaginatedLibro<T> {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: T[];
+    totales: Totales
+  }
+  
 
 export default function MovimientosPage() {
   const [page, setPage] = useState(1);
@@ -33,7 +45,7 @@ export default function MovimientosPage() {
     data: libro_diario,
     error,
     isLoading,
-  } = useSWR<PaginatedResponse<LibroDiario>>(url, apiFetcher);
+  } = useSWR<PaginatedLibro<LibroDiario>>(url, apiFetcher);
 
   const toggleSort = (
     field: "asiento_contable__numero" | "asiento_contable__fecha"
@@ -202,7 +214,7 @@ export default function MovimientosPage() {
           </tr>
         </thead>
         <tbody>
-          {libro_diario.results.map((mov) => (
+          {libro_diario?.results.map((mov) => (
             <tr key={mov.id} className="hover:bg-gray-50">
               <td className="border border-gray-300 px-4 py-2">
                 {mov.asiento?.numero || "—"}
@@ -236,6 +248,10 @@ export default function MovimientosPage() {
           ))}
         </tbody>
       </table>
+      <div>
+        <h1> Total Debe : {libro_diario.totales.debe_total}</h1>
+        <h1>Total Haber: {libro_diario.totales.haber_total}</h1>
+      </div>
 
       {/* Mensaje si no hay resultados */}
       {!isLoading && libro_diario.results.length === 0 && (
