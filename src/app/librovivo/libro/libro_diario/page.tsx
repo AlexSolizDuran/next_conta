@@ -1,12 +1,13 @@
 "use client";
 
 import { apiFetcher } from "@/lib/apiFetcher";
-import { MovimientoList } from "@/types/asiento/movimiento";
 import { LibroDiario } from "@/types/libro/libroDiario";
 import { PaginatedResponse } from "@/types/paginacion";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
+import TableList from "@/components/TableList";
+import { Eye } from "lucide-react";
 
 export default function MovimientosPage() {
   const [page, setPage] = useState(1);
@@ -38,12 +39,13 @@ export default function MovimientosPage() {
     field: "asiento_contable__numero" | "asiento_contable__fecha"
   ) => {
     if (sortField === field) {
-      setSortAsc(!sortAsc); // si ya es el mismo campo, invertir
+      setSortAsc(!sortAsc);
     } else {
       setSortField(field);
-      setSortAsc(true); // si es un campo nuevo, iniciar ascendente
+      setSortAsc(true);
     }
   };
+
   if (error)
     return (
       <div className="text-center p-10 text-red-500">
@@ -53,6 +55,72 @@ export default function MovimientosPage() {
 
   if (!libro_diario)
     return <div className="text-center p-10">Cargando Libro Diario...</div>;
+
+  // Columnas para TableList
+  const columns = [
+    {
+      key: "numero",
+      header: (
+        <span
+          className="cursor-pointer select-none"
+          onClick={() => toggleSort("asiento_contable__numero")}
+        >
+          Numero {sortField === "asiento_contable__numero" ? (sortAsc ? "↑" : "↓") : ""}
+        </span>
+      ),
+      render: (mov: LibroDiario) => mov.asiento?.numero || "—",
+    },
+    {
+      key: "fecha",
+      header: (
+        <span
+          className="cursor-pointer select-none"
+          onClick={() => toggleSort("asiento_contable__fecha")}
+        >
+          Fecha {sortField === "asiento_contable__fecha" ? (sortAsc ? "↑" : "↓") : ""}
+        </span>
+      ),
+      render: (mov: LibroDiario) =>
+        mov.asiento?.fecha
+          ? new Date(mov.asiento.fecha).toLocaleDateString()
+          : "—",
+    },
+    {
+      key: "referencia",
+      header: "Referencia",
+      render: (mov: LibroDiario) => mov.referencia,
+    },
+    {
+      key: "cuenta",
+      header: "Cuenta",
+      render: (mov: LibroDiario) =>
+        `${mov.cuenta?.codigo || ""} - ${mov.cuenta?.nombre || ""}`,
+    },
+    {
+      key: "debe",
+      header: "Debe",
+      className: "text-right",
+      render: (mov: LibroDiario) => mov.debe,
+    },
+    {
+      key: "haber",
+      header: "Haber",
+      className: "text-right",
+      render: (mov: LibroDiario) => mov.haber,
+    },
+    {
+      key: "detalle",
+      header: "Detalle",
+      render: (mov: LibroDiario) => (
+        <Link
+          href={`/librovivo/asiento_contable/asiento/${mov.asiento?.id}`}
+          className="flex items-center gap-2 text-blue-600 hover:underline"
+        >
+          <Eye className="w-5 h-5" />
+        </Link>
+      ),
+    },
+  ];
 
   return (
     <div className="p-6">

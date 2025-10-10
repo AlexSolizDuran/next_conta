@@ -27,6 +27,7 @@ import {
   ArrowRight,
   ArrowRightIcon,
   FileIcon,
+  StarIcon,
 } from "lucide-react";
 import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
 // Iconos de ejemplo (puedes usar react-icons, heroicons, etc.)
@@ -99,6 +100,20 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         {
           name: "Libro Diario",
           href: "/librovivo/libro/libro_diario",
+        },
+      ],
+    },
+    {
+      name: "Reportes",
+      icon: <StarIcon />,
+      children: [
+        {
+          name: "Balance General",
+          href: "/librovivo/reporte/balance_general",
+        },
+        {
+          name: "Estado de Resultado",
+          href: "/librovivo/reporte/estado_resultado",
         },
       ],
     },

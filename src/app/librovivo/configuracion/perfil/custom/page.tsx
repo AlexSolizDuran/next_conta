@@ -7,6 +7,9 @@ import { PaginatedResponse } from "@/types/paginacion";
 import { CustomGet } from "@/types/empresa/custom";
 import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
 import { useColores } from "@/context/ColoresContext";
+import ButtonInput from "@/components/ButtonInput";
+import TableList from "@/components/TableList";
+import { Check, Circle } from "lucide-react";
 
 export default function CustomColorsPage() {
   const [page, setPage] = useState(1);
@@ -19,6 +22,18 @@ export default function CustomColorsPage() {
     error,
     isLoading,
   } = useSWR<PaginatedResponse<CustomGet>>(url, apiFetcher);
+
+  // Obtener el custom seleccionado del usuario
+  let userCustomId: string | null = null;
+  if (typeof window !== "undefined") {
+    const userString = localStorage.getItem("user");
+    if (userString) {
+      try {
+        const user: UserEmpresaData = JSON.parse(userString);
+        userCustomId = user?.custom?.id || null;
+      } catch {}
+    }
+  }
 
   const handleSelect = async (id: string) => {
     setSelectedId(id);
@@ -48,10 +63,81 @@ export default function CustomColorsPage() {
   if (error)
     return <div className="p-6 text-red-500">Error al cargar los colores</div>;
 
+  // Columnas para TableList
+  const columns = [
+    {
+      key: "id",
+      header: "ID",
+    },
+    {
+      key: "color_primario",
+      header: "Primario",
+      render: (item: CustomGet) => (
+        <div className="flex justify-center items-center gap-2">
+          <div
+            className="w-15 h-6 rounded"
+            style={{ backgroundColor: item.color_primario }}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "color_secundario",
+      header: "Secundario",
+      render: (item: CustomGet) => (
+        <div className="flex justify-center items-center gap-2">
+          <div
+            className="w-15 h-6 rounded"
+            style={{ backgroundColor: item.color_secundario }}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "color_terciario",
+      header: "Terciario",
+      render: (item: CustomGet) => (
+        <div className="flex justify-center items-center gap-2">
+          <div
+            className="w-15 h-6 rounded"
+            style={{ backgroundColor: item.color_terciario }}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "seleccionar",
+      header: "Seleccionar",
+      render: (item: CustomGet) => {
+        const isSelected = (selectedId ?? userCustomId) === item.id;
+        return (
+           <ButtonInput
+        type="button"
+        onClick={() => !isSelected && handleSelect(item.id)}
+        disabled={isSelected}
+        className={`px-3 py-1 rounded flex items-center gap-2 ${
+          isSelected
+            ? "bg-green-600 text-white cursor-default"
+            : "bg-gray-200 hover:bg-green-500 hover:text-white"
+        }`}
+      >
+        {isSelected ? (
+          <Check className="w-5 h-5" />
+        ) : (
+          <Circle className="w-5 h-5" />
+        )}
+        
+      </ButtonInput>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold mb-4">Colores Disponibles</h1>
 
+<<<<<<< HEAD
       <table className="w-full table-auto border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-100">
@@ -109,6 +195,14 @@ export default function CustomColorsPage() {
           ))}
         </tbody>
       </table>
+=======
+      <TableList
+        columns={columns}
+        data={custom?.results || []}
+        rowKey={(item) => item.id}
+        emptyMessage="No hay colores para mostrar."
+      />
+>>>>>>> origin/pruebacomponentes
 
       {/* Paginación */}
       <div className="flex justify-center gap-2 mt-4">

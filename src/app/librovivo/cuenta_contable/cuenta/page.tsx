@@ -7,6 +7,10 @@ import { PaginatedResponse } from "@/types/paginacion";
 import { CuentaList } from "@/types/cuenta/cuenta";
 import { ArbolCuenta } from "@/types/cuenta/arbol_cuenta";
 import ArbolCuentas from "@/components/ArbolCuenta";
+import ButtonInput from "@/components/ButtonInput";
+import FormInput from "@/components/FormInput";
+import TableList from "@/components/TableList";
+import { Eye } from "lucide-react";
 
 export default function CuentaPage() {
   const [page, setPage] = useState(1);
@@ -40,6 +44,7 @@ export default function CuentaPage() {
     error: arbolError,
     isLoading: arbolLoading,
   } = useSWR<ArbolCuenta[]>(arbolUrl, apiFetcher);
+
   // --- Manejar cambios del formulario ---
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -62,6 +67,34 @@ export default function CuentaPage() {
       console.error(err);
     }
   };
+
+  // Columnas para TableList
+  const columns = [
+    {
+      key: "codigo",
+      header: "Código",
+    },
+    {
+      key: "nombre",
+      header: "Nombre",
+    },
+    {
+      key: "estado",
+      header: "Estado",
+    },
+    {
+      key: "acciones",
+      header: "Acciones",
+      render: (item: CuentaList) => (
+        <a
+          href={`/librovivo/cuenta_contable/cuenta/${item.id}`}
+          className="flex items-center gap-2 text-blue-600 hover:underline"
+        >
+          <Eye className="w-5 h-5" />
+        </a>
+      ),
+    },
+  ];
 
   return (
     <div className="p-6">
@@ -101,57 +134,20 @@ export default function CuentaPage() {
         )}
       </div>
 
-      <button
+      <ButtonInput
         onClick={() => setShowModal(true)}
         className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
       >
         Añadir Cuenta
-      </button>
+      </ButtonInput>
 
       {/* Tabla de cuentas */}
-      <div className="overflow-x-auto shadow rounded-2xl">
-        <table className="w-full table-auto border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Código
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Nombre
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Estado
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {cuentas?.results.map((cuenta) => (
-              <tr key={cuenta.id} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-2">
-                  {cuenta.codigo}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {cuenta.nombre}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {cuenta.estado}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <a
-                    href={`/librovivo/cuenta_contable/cuenta/${cuenta.id}`}
-                    className="inline-block bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
-                  >
-                    Ver
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TableList
+        columns={columns}
+        data={cuentas?.results || []}
+        rowKey={(item) => item.id}
+        emptyMessage="No hay cuentas registradas."
+      />
 
       {/* Paginación */}
       <div className="flex justify-center mt-6 gap-2">
@@ -178,32 +174,22 @@ export default function CuentaPage() {
           <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-lg">
             <h2 className="text-xl font-bold mb-4">Crear Nueva Cuenta</h2>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Código
-                </label>
-                <input
-                  type="text"
-                  name="codigo"
-                  value={newCuenta.codigo}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={newCuenta.nombre}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
+              <FormInput
+                label="Código"
+                name="codigo"
+                value={newCuenta.codigo}
+                onChange={handleChange}
+                required
+                placeholder="Código"
+              />
+              <FormInput
+                label="Nombre"
+                name="nombre"
+                value={newCuenta.nombre}
+                onChange={handleChange}
+                required
+                placeholder="Nombre"
+              />
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Estado
@@ -227,12 +213,12 @@ export default function CuentaPage() {
               >
                 Cancelar
               </button>
-              <button
+              <ButtonInput
                 className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
                 onClick={handleCreate}
               >
                 Crear
-              </button>
+              </ButtonInput>
             </div>
           </div>
         </div>

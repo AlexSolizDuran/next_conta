@@ -1,25 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { PaginatedResponse } from "@/types/paginacion";
 import { ArbolCuenta } from "@/types/cuenta/arbol_cuenta";
 import ArbolCuentas from "@/components/ArbolCuenta";
 import { LibroMayor } from "@/types/libro/libroMayor";
+import TableList from "@/components/TableList";
 import React from "react";
 
 export default function CuentaPage() {
   const [page, setPage] = useState(1);
   const [mostrarTodas, setMostrarTodas] = useState(false);
-
   const [expandidaId, setExpandidaId] = useState<string | null>(null);
-
   const [claseSeleccionada, setClaseSeleccionada] =
     useState<ArbolCuenta | null>(null);
+
   // URL de SWR con filtro por clase seleccionada
   const url = mostrarTodas
-    ? `/api/libro/libro_mayor/?page=${page}` // ignorar filtro
+    ? `/api/libro/libro_mayor/?page=${page}`
     : `/api/libro/libro_mayor/?page=${page}${
         claseSeleccionada ? `&clase_id=${claseSeleccionada.id}` : ""
       }`;
@@ -36,16 +36,27 @@ export default function CuentaPage() {
     error: arbolError,
     isLoading: arbolLoading,
   } = useSWR<ArbolCuenta[]>(arbolUrl, apiFetcher);
-  // --- Manejar cambios del formulario ---
-  
 
- 
-  
+  // Columnas para TableList
+  const columns = [
+    {
+      key: "codigo",
+      header: "Código",
+    },
+    {
+      key: "nombre",
+      header: "Nombre",
+    },
+    {
+      key: "estado",
+      header: "Estado",
+    },
+  ];
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-blue-900 mb-4">
-        Gestión de Cuentas
+        Libro Mayor
       </h1>
 
       {/* Árbol de clases de cuenta */}
@@ -56,7 +67,7 @@ export default function CuentaPage() {
           onClick={() => {
             setMostrarTodas(true);
             setClaseSeleccionada(null);
-            setPage(1); // resetear paginación
+            setPage(1);
           }}
         >
           Todos
@@ -64,9 +75,9 @@ export default function CuentaPage() {
         <ArbolCuentas
           cuentas={arbol || []}
           onSelect={(clase) => {
-            setClaseSeleccionada(clase); // aplicamos filtro directamente
-            setMostrarTodas(false); // desactivamos "mostrar todas"
-            setPage(1); // resetear paginación
+            setClaseSeleccionada(clase);
+            setMostrarTodas(false);
+            setPage(1);
           }}
         />
 
@@ -80,73 +91,37 @@ export default function CuentaPage() {
         )}
       </div>
 
-     
-      {/* Tabla de cuentas */}
-      <div className="overflow-x-auto shadow rounded-2xl">
-        <table className="w-full table-auto border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Código
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Nombre
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Estado
-              </th>
-              
-            </tr>
-          </thead>
-          <tbody>
-            {cuentas?.results.map((cuenta) => (
-              <React.Fragment key={cuenta.id}>
-                <tr
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() =>
-                    setExpandidaId(expandidaId === cuenta.id ? null : cuenta.id)
-                  }
-                >
-                  <td className="border border-gray-300 px-4 py-2">{cuenta.codigo}</td>
-                  <td className="border border-gray-300 px-4 py-2">{cuenta.nombre}</td>
-                  <td className="border border-gray-300 px-4 py-2">{cuenta.estado}</td>
+      {/* Tabla de cuentas con filas expandidas */}
+      <TableList
+        columns={columns}
+        data={cuentas?.results || []}
+        rowKey={(item) => item.id}
+        emptyMessage="No hay cuentas para mostrar."
+        expandableRow={(cuenta: LibroMayor) => (
+          <table className="w-full table-auto border-collapse border border-gray-200">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-2 py-1 border-b">Numero</th>
+                <th className="px-2 py-1 border-b">Fecha</th>
+                <th className="px-2 py-1 border-b">Referencia</th>
+                <th className="px-2 py-1 border-b">Debe</th>
+                <th className="px-2 py-1 border-b">Haber</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cuenta.movimientos.map((mov) => (
+                <tr key={mov.id} className="hover:bg-gray-50">
+                  <td className="px-2 py-1 border-b">{mov.asiento}</td>
+                  <td className="px-2 py-1 border-b">{mov.fecha}</td>
+                  <td className="px-2 py-1 border-b">{mov.referencia}</td>
+                  <td className="px-2 py-1 border-b">{mov.debe}</td>
+                  <td className="px-2 py-1 border-b">{mov.haber}</td>
                 </tr>
-
-                {/* Mostrar movimientos si la fila está expandida */}
-                {expandidaId === cuenta.id && (
-                  <tr>
-                    <td colSpan={3} className="px-4 py-2 bg-gray-50">
-                      <table className="w-full table-auto border-collapse border border-gray-200">
-                        <thead className="bg-gray-100">
-                          <tr>
-                            <th className="px-2 py-1 border-b">Numero</th>
-                            <th className="px-2 py-1 border-b">Fecha</th>
-                            <th className="px-2 py-1 border-b">Referencia</th>
-                            <th className="px-2 py-1 border-b">Debe</th>
-                            <th className="px-2 py-1 border-b">Haber</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {cuenta.movimientos.map((mov) => (
-                            <tr key={mov.id} className="hover:bg-gray-50">
-                              <td className="px-2 py-1 border-b">{mov.asiento}</td>
-                              <td className="px-2 py-1 border-b">{mov.fecha}</td>
-                              <td className="px-2 py-1 border-b">{mov.referencia}</td>
-                              <td className="px-2 py-1 border-b">{mov.debe}</td>
-                              <td className="px-2 py-1 border-b">{mov.haber}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        )}
+      />
 
       {/* Paginación */}
       <div className="flex justify-center mt-6 gap-2">
@@ -166,8 +141,6 @@ export default function CuentaPage() {
           Siguiente
         </button>
       </div>
-
-      
     </div>
   );
 }
