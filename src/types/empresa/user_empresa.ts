@@ -10,7 +10,9 @@ interface UserEmpresaGet{
     usuario: string,
     empresa:string,
     custom: CustomGet,
-    roles:string[]
+    roles:string[],
+    texto_tipo? : string,
+    texto_tamaño?: string
 }
 interface UserEmpresaList{
     id:string,

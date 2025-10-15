@@ -36,7 +36,7 @@ export async function proxyById(
 
   try {
     const res = await fetch(backendUrl, fetchOptions);
-
+    
     if (res.status === 204) {
       return NextResponse.json(
         { success: true, message: "Eliminado" },
@@ -49,7 +49,7 @@ export async function proxyById(
   } catch (err) {
     console.error(`Error proxy a ${endpoint}/${id}:`, err);
     return NextResponse.json(
-      { message: "Error interno del servidor" },
+      { message: `${err}`},
       { status: 500 }
     );
   }

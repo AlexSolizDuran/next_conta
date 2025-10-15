@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Page() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-      <h1 className="text-2xl font-semibold mb-8 text-gray-800">
+      <h1 className=" font-semibold mb-8 text-gray-800">
         Configuración del Sistema
       </h1>
 
@@ -12,7 +12,7 @@ export default function Page() {
           href="/librovivo/configuracion/colaborador/"
           className="block bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-6 border border-gray-100 hover:border-green-400"
         >
-          <h2 className="text-lg font-medium text-gray-800 mb-2">
+          <h2 className=" font-medium text-gray-800 mb-2">
             Gestion de Colaboradores
           </h2>
           
@@ -21,22 +21,28 @@ export default function Page() {
           href="/librovivo/configuracion/perfil/custom"
           className="block bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-6 border border-gray-100 hover:border-green-400"
         >
-          <h2 className="text-lg font-medium text-gray-800 mb-2">
+          <h2 className="font-medium text-gray-800 mb-2">
             Configuración de Colores
           </h2>
           
         </Link>
-
+        <Link
+          href="/librovivo/configuracion/perfil/texto"
+          className="block bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-6 border border-gray-100 hover:border-green-400"
+        >
+          <h2 className="font-medium text-gray-800 mb-2">
+            Configuración de Texto
+          </h2>
+          
+        </Link>
         <Link
           href="/librovivo/configuracion/rol"
           className="block bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-6 border border-gray-100 hover:border-blue-400"
         >
-          <h2 className="text-lg font-medium text-gray-800 mb-2">
+          <h2 className=" font-medium text-gray-800 mb-2">
             Configuración de Roles
           </h2>
-          <p className="text-sm text-gray-500">
-            Gestiona los roles y permisos del sistema.
-          </p>
+          
         </Link>
       </div>
     </div>

@@ -40,6 +40,7 @@ export async function POST(request: Request) {
     // 3. Creamos una respuesta y establecemos el token en una cookie httpOnly
     const response = NextResponse.json({
       success: true,
+      user_id : data.user_id,
       username: data.username,
       nombre: data.nombre,
       apellido: data.apellido,

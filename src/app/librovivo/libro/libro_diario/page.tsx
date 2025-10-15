@@ -142,7 +142,7 @@ export default function MovimientosPage() {
         {/* Filtros de fecha */}
         <div className="mb-4 flex gap-2 items-end">
           <div>
-            <label className="block text-sm font-medium">Fecha inicio</label>
+            <label className="block  font-medium">Fecha inicio</label>
             <input
               type="date"
               value={fechaInicio}
@@ -151,7 +151,7 @@ export default function MovimientosPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Fecha fin</label>
+            <label className="block  font-medium">Fecha fin</label>
             <input
               type="date"
               value={fechaFin}
@@ -248,10 +248,7 @@ export default function MovimientosPage() {
           ))}
         </tbody>
       </table>
-      <div>
-        <h1> Total Debe : {libro_diario.totales.debe_total}</h1>
-        <h1>Total Haber: {libro_diario.totales.haber_total}</h1>
-      </div>
+      
 
       {/* Mensaje si no hay resultados */}
       {!isLoading && libro_diario.results.length === 0 && (
@@ -261,6 +258,10 @@ export default function MovimientosPage() {
           </p>
         </div>
       )}
+      <div>
+        <h1> Total Debe : {libro_diario.totales.debe_total}</h1>
+        <h1>Total Haber: {libro_diario.totales.haber_total}</h1>
+      </div>
 
       {/* Paginación */}
       <div className="flex justify-center mt-6 gap-2">

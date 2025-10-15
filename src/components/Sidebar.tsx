@@ -9,27 +9,13 @@ import {
   Users as UsersIcon,
   FileText as FileTextIcon,
   CreditCard as CreditCardIcon,
-  Bell as BellIcon,
-  Calendar as CalendarIcon,
-  Settings as SettingsIcon,
-  MenuIcon,
-  AxeIcon,
-  BusIcon,
-  BlocksIcon,
-  ArrowUpIcon,
-  ArrowDownZAIcon,
   ArrowDownIcon,
-  ArrowBigDown,
-  ArrowBigLeft,
-  ArrowBigRight,
-  ArrowBigRightDashIcon,
-  ArrowBigRightIcon,
-  ArrowRight,
   ArrowRightIcon,
   FileIcon,
   StarIcon,
 } from "lucide-react";
 import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
+import Favoritos from "./buttons/ButtonFav";
 // Iconos de ejemplo (puedes usar react-icons, heroicons, etc.)
 
 // Cambiado a un ícono de flecha SVG para un look más moderno
@@ -103,7 +89,6 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         },
       ],
     },
-    
   ];
 
   useEffect(() => {
@@ -141,9 +126,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         } fixed top-0 left-0 w-64 h-screen bg-primario shadow-lg z-20 transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:translate-x-0 md:flex md:flex-col md:h-screen overflow-y-auto`}
       >
         <div className="flex items-center justify-between p-3   ">
-          <h1 className="font-bold text-xl text-gray-800 dark:text-white">
-            Menu
-          </h1>
+          <h1 className="font-bold text-gray-800 dark:text-white">Menu</h1>
           <button
             className="md:hidden p-2 text-gray-600 dark:text-gray-300"
             onClick={() => setOpen(false)}
@@ -266,6 +249,13 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
               )}
             </div>
           ))}
+
+          <div className="mt-4 ">
+            <h2 className="text-white font-semibold mb-2 flex items-center gap-2">
+              <StarIcon /> Favoritos
+            </h2>
+            <Favoritos />
+          </div>
         </nav>
       </aside>
     </>

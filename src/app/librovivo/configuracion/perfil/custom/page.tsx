@@ -41,8 +41,7 @@ export default function CustomColorsPage() {
     const userString = localStorage.getItem("user");
     const user: UserEmpresaData = JSON.parse(userString || "");
     const userEmpresaId = user.user_empresa;
-    console.log("el id es " , userEmpresaId)
-    console.log("el custom es " , id)
+   
     try {
       await apiFetcher(`/api/empresa/user_empresa/${userEmpresaId}/`, {
         method: "PUT",
