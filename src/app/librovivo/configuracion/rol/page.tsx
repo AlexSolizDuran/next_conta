@@ -143,12 +143,8 @@ export default function rolCuentaPage() {
         emptyMessage="No se encontraron roles de cuenta registradas."
       />
 
-      {/* Mensaje si no hay resultados */}
-      {!isLoading && roles.results.length === 0 && (
-        <div className="text-center py-10 bg-white rounded-lg shadow">
-          <p className="text-gray-500">No se encontraron roles de cuenta registradas.</p>
-        </div>
-      )}
+   
+      
 
       {/* Paginación */}
       <div className="flex justify-center mt-6 gap-2">

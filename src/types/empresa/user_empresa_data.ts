@@ -9,5 +9,6 @@ interface UserEmpresaData{
     usuario:UsuarioGet,
     rol:string[],
     custom : CustomGet,
+    
 }
 export type {UserEmpresaData}
