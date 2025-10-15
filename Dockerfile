@@ -1,6 +1,6 @@
 #nextjs docker
 #build
-#15/10/2025
+#15/10/2025-nuevocommit
 FROM node:18-alpine AS builder
 WORKDIR /app
 
