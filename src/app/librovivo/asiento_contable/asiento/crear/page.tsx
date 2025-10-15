@@ -315,7 +315,7 @@ export default function CrearAsientoPage() {
             </div>
             <div className="flex justify-end space-x-3">
               <Link
-                href="/asientos-contables"
+                href="/librovivo/asiento-contable/asiento"
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
               >
                 Cancelar
