@@ -1,5 +1,6 @@
 #nextjs docker
 #build
+#15/10/2025
 FROM node:18-alpine AS builder
 WORKDIR /app
 
