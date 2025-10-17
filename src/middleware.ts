@@ -49,6 +49,7 @@ export const config = {
      */
     "/librovivo/:path*",
     "/perfil/:path*",
+    "/superuser/:path*"
 
   ],
 };
