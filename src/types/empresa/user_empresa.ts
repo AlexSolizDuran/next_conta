@@ -12,7 +12,7 @@ interface UserEmpresaGet{
     custom: CustomGet,
     roles:string[],
     texto_tipo? : string,
-    texto_tamaño?: string
+    texto_tamano?: string
 }
 interface UserEmpresaList{
     id:string,

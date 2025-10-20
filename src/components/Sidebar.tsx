@@ -16,19 +16,26 @@ import {
 } from "lucide-react";
 import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
 import Favoritos from "./buttons/ButtonFav";
-// Iconos de ejemplo (puedes usar react-icons, heroicons, etc.)
-
-// Cambiado a un ícono de flecha SVG para un look más moderno
-
-const CloseIcon = () => <span>✕</span>;
-
-type SidebarVariant = "admin" | "propietario";
-
-interface SidebarProps {
-  variant?: SidebarVariant;
+import { usePermisos } from "@/context/PermisoProvider";
+import { ReactNode } from "react";
+interface SubMenuItem {
+  name: string;
+  href: string;
+  permiso?: string;
 }
 
-export default function Sidebar({ variant = "admin" }: SidebarProps) {
+interface MenuItem {
+  name: string;
+  href?: string;
+  icon: ReactNode;
+  permiso?: string;
+  children?: SubMenuItem[];
+}
+const CloseIcon = () => <span>✕</span>;
+
+export default function Sidebar() {
+  const { permisos, tienePermiso } = usePermisos();
+
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<UserEmpresaData>();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
@@ -45,7 +52,7 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
     });
     router.push("/");
   };
-  const adminItems = [
+  const adminItems: MenuItem[] = [
     { name: "Panel", href: "/librovivo/dashboard", icon: <UsersIcon /> },
     {
       name: "Cuentas",
@@ -54,10 +61,12 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         {
           name: "Plan de Cuentas",
           href: "/librovivo/cuenta_contable/clase_cuenta",
+          permiso: "ver_clase_cuenta",
         },
         {
           name: "Cuentas Contables",
           href: "/librovivo/cuenta_contable/cuenta",
+          permiso: "ver_cuenta",
         },
       ],
     },
@@ -68,10 +77,12 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         {
           name: "Asientos",
           href: "/librovivo/asiento_contable/asiento",
+          permiso: "ver_asiento",
         },
         {
           name: "Movimientos",
           href: "/librovivo/asiento_contable/movimiento",
+          permiso: "ver_movimiento",
         },
       ],
     },
@@ -82,10 +93,12 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         {
           name: "Libro Mayor",
           href: "/librovivo/libro/libro_mayor",
+          permiso: "ver_libro_mayor",
         },
         {
           name: "Libro Diario",
           href: "/librovivo/libro/libro_diario",
+          permiso: "ver_libro_diario",
         },
       ],
     },
@@ -194,61 +207,72 @@ export default function Sidebar({ variant = "admin" }: SidebarProps) {
         )}
 
         <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item, i) => (
-            <div key={i}>
-              {item.children ? (
-                <>
-                  {/* Botón principal con submenú */}
-                  <button
-                    onClick={() => toggleSubmenu(item.name)}
-                    className="w-full flex items-center justify-between p-2 text-white hover:text-black hover:bg-white rounded-md transition-colors"
-                  >
-                    <span className="flex items-center">
-                      <span className="mr-3">{item.icon}</span>
-                      <span>{item.name}</span>
-                    </span>
-                    <span
-                      className={`transform transition-transform ${
-                        openSubmenu === item.name ? "rotate-90" : ""
+          {menuItems.map((item, i) => {
+            // Si el item tiene permiso definido y el usuario no lo tiene, no mostrar
+            if (item.permiso && !tienePermiso(item.permiso)) return null;
+
+            return (
+              <div key={i}>
+                {item.children ? (
+                  <>
+                    {/* Botón principal con submenú */}
+                    <button
+                      onClick={() => toggleSubmenu(item.name)}
+                      className="w-full flex items-center justify-between p-2 text-white hover:text-black hover:bg-white rounded-md transition-colors"
+                    >
+                      <span className="flex items-center">
+                        <span className="mr-3">{item.icon}</span>
+                        <span>{item.name}</span>
+                      </span>
+                      <span
+                        className={`transform transition-transform ${
+                          openSubmenu === item.name ? "rotate-90" : ""
+                        }`}
+                      >
+                        <ArrowDownIcon />
+                      </span>
+                    </button>
+
+                    {/* Submenú */}
+                    <div
+                      className={`pl-8 mt-1 space-y-1 overflow-hidden transition-all duration-300 ${
+                        openSubmenu === item.name
+                          ? "max-h-40 opacity-100"
+                          : "max-h-0 opacity-0"
                       }`}
                     >
-                      <ArrowDownIcon />
-                    </span>
-                  </button>
+                      {item.children.map((sub, j) => {
+                        // Validación de permiso para subitem
+                        if (sub.permiso && !tienePermiso(sub.permiso))
+                          return null;
 
-                  {/* Submenú */}
-                  <div
-                    className={`pl-8 mt-1 space-y-1 overflow-hidden transition-all duration-300 ${
-                      openSubmenu === item.name
-                        ? "max-h-40 opacity-100"
-                        : "max-h-0 opacity-0"
-                    }`}
+                        return (
+                          <Link
+                            key={j}
+                            href={sub.href}
+                            onClick={() => setOpen(false)}
+                            className="block p-2 text-white hover:text-black hover:bg-white rounded-md"
+                          >
+                            {sub.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  // Enlace normal (sin submenú)
+                  <Link
+                    href={item.href || ""}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center p-2 text-white hover:text-black hover:bg-white rounded-md transition-colors"
                   >
-                    {item.children.map((sub, j) => (
-                      <Link
-                        key={j}
-                        href={sub.href}
-                        onClick={() => setOpen(false)}
-                        className="block p-2 text-white hover:text-black hover:bg-white rounded-md"
-                      >
-                        {sub.name}
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                // Enlace normal (sin submenú)
-                <Link
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center p-2 text-white hover:text-black hover:bg-white rounded-md transition-colors"
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  <span>{item.name}</span>
-                </Link>
-              )}
-            </div>
-          ))}
+                    <span className="mr-3">{item.icon}</span>
+                    <span>{item.name}</span>
+                  </Link>
+                )}
+              </div>
+            );
+          })}
 
           <div className="mt-4 ">
             <h2 className="text-white font-semibold mb-2 flex items-center gap-2">

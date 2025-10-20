@@ -49,7 +49,7 @@ export const EstiloProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (user_empresa) {
       if (user_empresa.texto_tipo) setFuente(user_empresa.texto_tipo);
-      if (user_empresa.texto_tamaño) setTamano(user_empresa.texto_tamaño);
+      if (user_empresa.texto_tamano) setTamano(user_empresa.texto_tamano);
     }
     setLoading(false)
   }, [user_empresa]);
