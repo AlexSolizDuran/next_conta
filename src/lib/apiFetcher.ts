@@ -16,15 +16,13 @@ export const apiFetcher = async <T>(
 
     if (!res.ok) {
       let errorMsg = `Error ${res.status}`;
+      let errData: any = {};
       try {
         const errData = await res.json();
-        errorMsg =
-          errData.detail ||
-          errData.message ||
-          JSON.stringify(errData) ||
-          errorMsg;
+        errorMsg = JSON.stringify(errData);
       } catch {
-        // ignoramos si no es JSON
+        // ya no, ignoramos si no es JSON
+        errorMsg = errData.detail || errData.message || `Error ${res.status}: ${res.statusText}`;
       }
       if (options.body) {
         if (isFormData) {
