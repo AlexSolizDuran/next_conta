@@ -158,6 +158,11 @@ export default function Sidebar() {
                 <p className="font-semibold text-white">
                   {user.usuario.persona.nombre} {user.usuario.persona.apellido}
                 </p>
+                <p className="text-xs text-gray-200">
+                  {Array.isArray(user.rol) && user.rol.length > 0
+                    ? user.rol[0]
+                    : "Sin rol"}
+                </p>
                 <p className="text-xs text-gray-200">{user.usuario.email}</p>
               </div>
 

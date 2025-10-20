@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { UserEmpresaList } from "@/types/empresa/user_empresa";
 import useSWR, { mutate } from "swr";
@@ -8,6 +8,8 @@ import { PaginatedResponse } from "@/types/paginacion";
 import ButtonInput from "@/components/ButtonInput";
 import ButtonDelete from "@/components/ButtonDelete";
 import TableList from "@/components/TableList"; // Asegúrate de que este componente maneje la paginación
+import { useParams } from "next/navigation";
+import { usePermisos } from "@/context/PermisoProvider";
 
 // --- Componente Modal Simple ---
 // Lo ideal sería mover esto a un archivo separado (ej: Modal.jsx)
@@ -31,7 +33,8 @@ const ColaboradorModal = ({ colaborador, onClose }: ColaboradorModalProps) => {
         <div className="space-y-3 text-sm text-gray-700">
           <p>
             <strong className="block text-base">Nombre Completo:</strong>{" "}
-            {colaborador.usuario.persona.nombre} {colaborador.usuario.persona.apellido}
+            {colaborador.usuario.persona.nombre}{" "}
+            {colaborador.usuario.persona.apellido}
           </p>
           <p>
             <strong className="block text-base">Username:</strong>{" "}
@@ -45,12 +48,15 @@ const ColaboradorModal = ({ colaborador, onClose }: ColaboradorModalProps) => {
             <strong className="block text-base">Telefono:</strong>{" "}
             {colaborador.usuario.persona.telefono}
           </p>
-          
+
           {/* Puedes añadir más campos aquí si los necesitas */}
         </div>
 
         <div className="mt-6 flex justify-end">
-          <ButtonInput onClick={onClose} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <ButtonInput
+            onClick={onClose}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
             Cerrar
           </ButtonInput>
         </div>
@@ -61,10 +67,11 @@ const ColaboradorModal = ({ colaborador, onClose }: ColaboradorModalProps) => {
 // ------------------------------
 
 export default function ColaboradoresPage() {
+  const { permisos, tienePermiso } = usePermisos();
   const [page, setPage] = useState(1);
   const [nuevoEmail, setNuevoEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // 🆕 Nuevo estado para el modal
   const [modalData, setModalData] = useState<UserEmpresaList | null>(null);
 
@@ -80,7 +87,7 @@ export default function ColaboradoresPage() {
   const handleOpenModal = (colaborador: UserEmpresaList) => {
     setModalData(colaborador);
   };
-  
+
   // 🆕 Función para cerrar el modal
   const handleCloseModal = () => {
     setModalData(null);
@@ -97,7 +104,7 @@ export default function ColaboradoresPage() {
       });
       setNuevoEmail("");
       // Uso de `mutate(pageUrl, ...)` para revalidar la lista
-      mutate(pageUrl); 
+      mutate(pageUrl);
     } catch (err) {
       console.error(err);
       alert("Error al agregar colaborador");
@@ -112,7 +119,7 @@ export default function ColaboradoresPage() {
     try {
       await apiFetcher(`${url}/${id}`, { method: "DELETE" });
       // Uso de `mutate(pageUrl, ...)` para revalidar la lista
-      mutate(pageUrl); 
+      mutate(pageUrl);
     } catch (err) {
       console.error(err);
       alert("Error al eliminar colaborador");
@@ -145,16 +152,20 @@ export default function ColaboradoresPage() {
       header: "Acciones",
       render: (c: UserEmpresaList) => (
         <div className="flex gap-2">
-          <ButtonDelete onClick={() => handleEliminar(c.id)}>
-            Eliminar
-          </ButtonDelete>
-          {/* 🔄 Cambiado para abrir el modal */}
-          <ButtonInput
-            onClick={() => handleOpenModal(c)}
-            className="bg-blue-500 hover:bg-blue-600"
-          >
-            Info
-          </ButtonInput>
+          {tienePermiso("eliminar_colaborador") && (
+            <ButtonDelete onClick={() => handleEliminar(c.id)}>
+              Eliminar
+            </ButtonDelete>
+          )}
+
+          {tienePermiso("ver_colaborador") && (
+            <ButtonInput
+              onClick={() => handleOpenModal(c)}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Info
+            </ButtonInput>
+          )}
         </div>
       ),
     },
@@ -165,23 +176,25 @@ export default function ColaboradoresPage() {
       <h1 className="text-2xl font-bold mb-4">Gestión de Colaboradores</h1>
 
       {/* Formulario para agregar colaborador */}
-      <div className="flex gap-2 mb-4">
-        <input
-          type="email"
-          placeholder="Correo Gmail"
-          value={nuevoEmail}
-          onChange={(e) => setNuevoEmail(e.target.value)}
-          className="border p-2 rounded flex-1"
-        />
-        <ButtonInput
-          onClick={handleAgregar}
-          disabled={isLoading || !nuevoEmail}
-          className="bg-green-600 text-white"
-          loading={isLoading}
-        >
-          Añadir
-        </ButtonInput>
-      </div>
+      {tienePermiso("crear_colaborador") && (
+        <div className="flex gap-2 mb-4">
+          <input
+            type="email"
+            placeholder="Correo Gmail"
+            value={nuevoEmail}
+            onChange={(e) => setNuevoEmail(e.target.value)}
+            className="border p-2 rounded flex-1"
+          />
+          <ButtonInput
+            onClick={handleAgregar}
+            disabled={isLoading || !nuevoEmail}
+            className="bg-green-600 text-white"
+            loading={isLoading}
+          >
+            Añadir
+          </ButtonInput>
+        </div>
+      )}
 
       {/* Tabla de colaboradores */}
       <TableList
