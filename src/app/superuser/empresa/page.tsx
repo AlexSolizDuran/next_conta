@@ -4,6 +4,8 @@ import TableList from "@/components/TableList";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { EmpresaList } from "@/types/empresa/empresa";
 import { PaginatedResponse } from "@/types/paginacion";
+import { EyeIcon, Icon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -40,7 +42,9 @@ export default function page(){
       header: "Acciones",
       render: (item: EmpresaList) => (
         <div className="gap-1">
-            Button
+            <Link href={`/superuser/empresa/${item.id}`}>
+              <EyeIcon className="text-blue-500"></EyeIcon>
+            </Link>
         </div>
       ),
     },

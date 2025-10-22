@@ -1,5 +1,6 @@
 import { UsuarioGet } from "../usuario/usuario"
 import { CustomGet } from "./custom"
+import { RolEmpresaList } from "./rol_empresa"
 
 interface UserEmpresaSet{
     usuario: string,
@@ -17,7 +18,7 @@ interface UserEmpresaGet{
 interface UserEmpresaList{
     id:string,
     usuario:UsuarioGet,
-    roles:string[]
+    roles:RolEmpresaList[]
 }
 
 export type {UserEmpresaGet,UserEmpresaSet,UserEmpresaList}
