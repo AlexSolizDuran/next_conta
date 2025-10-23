@@ -1,3 +1,5 @@
+import { UserEmpresaList } from "./user_empresa"
+
 interface EmpresaSet{
     nombre:string,
     nit?:string
@@ -6,7 +8,8 @@ interface EmpresaSet{
 interface EmpresaGet{
     id:string,
     nombre:string,
-    nit:string
+    nit:string,
+    usuarios: UserEmpresaList[]
 }
 interface EmpresaList{
     id:string,

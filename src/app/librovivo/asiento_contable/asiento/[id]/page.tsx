@@ -6,8 +6,14 @@ import { useRouter } from "next/navigation";
 import { AsientoGet } from "@/types/asiento/asiento";
 import { apiFetcher } from "@/lib/apiFetcher";
 import Link from "next/link";
+import { usePermisos } from "@/context/PermisoProvider";
 
-export default function AsientoDetallePage({ params }: { params: Promise<{ id: string }> }) {
+export default function AsientoDetallePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { permisos, tienePermiso } = usePermisos();
   const { id } = use(params);
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -36,9 +42,14 @@ export default function AsientoDetallePage({ params }: { params: Promise<{ id: s
   };
 
   // --- Estados de carga / error ---
-  if (isLoading) return <p className="text-center text-gray-500">Cargando...</p>;
-  if (error) return <p className="text-center text-red-500">Error al cargar el asiento</p>;
-  if (!asiento) return <p className="text-center text-red-500">Asiento no encontrado</p>;
+  if (isLoading)
+    return <p className="text-center text-gray-500">Cargando...</p>;
+  if (error)
+    return (
+      <p className="text-center text-red-500">Error al cargar el asiento</p>
+    );
+  if (!asiento)
+    return <p className="text-center text-red-500">Asiento no encontrado</p>;
 
   // --- Render principal ---
   return (
@@ -48,24 +59,28 @@ export default function AsientoDetallePage({ params }: { params: Promise<{ id: s
       </h1>
 
       <div className="flex gap-2 mb-4">
-        <Link
-          href={`/librovivo/asiento_contable/asiento/${asiento.id}/editar`}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg"
-        >
-          Editar
-        </Link>
-
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50"
-        >
-          {deleting ? "Eliminando..." : "Eliminar"}
-        </button>
+        {tienePermiso("editar_asiento") && (
+          <Link
+            href={`/librovivo/asiento_contable/asiento/${asiento.id}/editar`}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg"
+          >
+            Editar
+          </Link>
+        )}
+        {tienePermiso("eliminar_asiento") && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50"
+          >
+            {deleting ? "Eliminando..." : "Eliminar"}
+          </button>
+        )}
       </div>
 
       <p className="text-gray-600 mb-2">
-        <span className="font-semibold">Descripción:</span> {asiento.descripcion}
+        <span className="font-semibold">Descripción:</span>{" "}
+        {asiento.descripcion}
       </p>
       <p className="text-gray-600 mb-6">
         <span className="font-semibold">Fecha:</span>{" "}
