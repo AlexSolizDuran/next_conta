@@ -185,7 +185,17 @@ export default function SeleccionarPlanPage() {
       // El backend devuelve un JSON de error si falla la validación
       try {
           const errorJson = JSON.parse(err.message);
-          const errorMsg = errorJson.detail || Object.values(errorJson)[0][0] || "Error al procesar el pago.";
+          let errorMsg = "Error al procesar el pago.";
+          if (errorJson && typeof errorJson === "object") {
+              if ("detail" in errorJson) {
+                  errorMsg = (errorJson as any).detail;
+              } else {
+                  const values = Object.values(errorJson);
+                  if (Array.isArray(values[0])) {
+                      errorMsg = values[0][0];
+                  }
+              }
+          }
           setError(errorMsg);
       } catch {
           setError(err.message || "Error al procesar la suscripción. Intente de nuevo.");
