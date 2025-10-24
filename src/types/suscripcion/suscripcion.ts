@@ -51,7 +51,7 @@ export interface SuscripcionData {
     empresa_disponible: number | null;
     colab_disponible: number | null;
     estado: EstadoData;
-    plan: TipoPlanData; //Este objeto contiene todo
+    plan: TipoPlanFull; //Este objeto contiene todo
 }
 
 // Request para el pago
@@ -72,7 +72,7 @@ export interface SubscriptionSuccessResponse {
     fecha_fin_formateada: string; // Puede ser un campo extra del serializer
 }
 export interface LibelulaResponse {
-    // 🚨 Este es el campo más importante. Es la URL a la que el frontend debe redirigir al cliente.
+    // Este es el campo más importante. Es la URL a la que el frontend debe redirigir al cliente.
     url_pasarela_pagos: string; 
     
     // Este es el identificador único de la deuda que registramos en Libélula. 
