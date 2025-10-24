@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import { apiFetcher } from "@/lib/apiFetcher";
@@ -11,8 +10,11 @@ import ButtonInput from "@/components/ButtonInput";
 import FormInput from "@/components/FormInput";
 import TableList from "@/components/TableList";
 import { Eye } from "lucide-react";
+import { usePermisos } from "@/context/PermisoProvider";
+import Link from "next/link";
 
 export default function CuentaPage() {
+  const { permisos, tienePermiso } = usePermisos();
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [mostrarTodas, setMostrarTodas] = useState(false);
@@ -86,12 +88,16 @@ export default function CuentaPage() {
       key: "acciones",
       header: "Acciones",
       render: (item: CuentaList) => (
-        <a
-          href={`/librovivo/cuenta_contable/cuenta/${item.id}`}
-          className="flex items-center gap-2 text-blue-600 hover:underline"
-        >
-          <Eye className="w-5 h-5" />
-        </a>
+        <div className="flex gap-2">
+          {tienePermiso("ver_cuenta") && (
+            <Link
+              href={`/librovivo/cuenta_contable/cuenta/${item.id}`}
+              className="flex items-center gap-2 text-blue-600 hover:underline"
+            >
+              <Eye className="w-5 h-5" />
+            </Link>
+          )}
+        </div>
       ),
     },
   ];
@@ -133,15 +139,15 @@ export default function CuentaPage() {
           </div>
         )}
       </div>
+      {tienePermiso("crear_cuenta") && (
+        <ButtonInput
+          onClick={() => setShowModal(true)}
+          className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+        >
+          Añadir Cuenta
+        </ButtonInput>
+      )}
 
-      <ButtonInput
-        onClick={() => setShowModal(true)}
-        className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-      >
-        Añadir Cuenta
-      </ButtonInput>
-
-      {/* Tabla de cuentas */}
       <TableList
         columns={columns}
         data={cuentas?.results || []}

@@ -36,7 +36,7 @@ export default function LoginPage() {
         body: JSON.stringify(loginData),
       });
       localStorage.setItem("usuario", JSON.stringify(result));
-
+      console.log(result)
       router.push('/perfil/mis_empresas');
     } catch (err: any) {
       console.error('Error en el login:', err);

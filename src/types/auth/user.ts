@@ -5,6 +5,7 @@ interface User {
     apellido : string,
     email : string,
     access:string,
+    superuser:string,
     success :boolean
 }
 

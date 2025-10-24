@@ -9,8 +9,10 @@ import useSWR from "swr";
 import ButtonInput from "@/components/ButtonInput";
 import TableList from "@/components/TableList";
 import { Eye } from "lucide-react";
+import { usePermisos } from "@/context/PermisoProvider";
 
 export default function AsientoPage() {
+  const { permisos, tienePermiso } = usePermisos();
   const [page, setPage] = useState(1);
   const url = `/api/asiento_contable/asiento/?page=${page}`;
 
@@ -52,13 +54,16 @@ export default function AsientoPage() {
       key: "acciones",
       header: "Acciones",
       render: (asiento: AsientoList) => (
-        <Link
-          key={asiento.id}
-          href={`/librovivo/asiento_contable/asiento/${asiento.id}`}
-          className="flex items-center gap-2 text-blue-600 hover:underline"
-        >
-          <Eye className="w-5 h-5" />
-        </Link>
+        <div className="flex gap-2">
+          {tienePermiso("ver_asiento") && (
+            <Link
+              href={`/librovivo/asiento_contable/asiento/${asiento.id}`}
+              className="text-blue-600 hover:underline"
+            >
+              <Eye className="w-5 h-5" />
+            </Link>
+          )}
+        </div>
       ),
     },
   ];
@@ -68,11 +73,14 @@ export default function AsientoPage() {
       <h1 className="text-2xl font-bold text-blue-900 mb-4">
         Gestión de Asientos
       </h1>
-      <Link href={"/librovivo/asiento_contable/asiento/crear"}>
-        <ButtonInput className="mb-4 bg-green-600 text-white hover:bg-green-700">
-          Añadir
-        </ButtonInput>
-      </Link>
+      {tienePermiso("crear_asiento") && (
+        <Link href={"/librovivo/asiento_contable/asiento/crear"}>
+          <ButtonInput className="mb-4 bg-green-600 text-white hover:bg-green-700">
+            Añadir
+          </ButtonInput>
+        </Link>
+      )}
+
       <TableList
         columns={columns}
         data={asientos.results}

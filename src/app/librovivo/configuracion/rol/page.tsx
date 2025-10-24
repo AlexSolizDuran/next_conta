@@ -10,18 +10,26 @@ import ButtonInput from "@/components/ButtonInput";
 import ButtonEdit from "@/components/ButtonEdit";
 import ButtonDelete from "@/components/ButtonDelete";
 import TableList from "@/components/TableList";
+import { usePermisos } from "@/context/PermisoProvider";
 
 export default function rolCuentaPage() {
+  const { permisos, tienePermiso } = usePermisos();
   const [page, setPage] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState<RolEmpresaSet | null>(null);
+  const [showEditModal, setShowEditModal] = useState<RolEmpresaSet | null>(
+    null
+  );
   const [formData, setFormData] = useState({ nombre: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const url = `/api/empresa/rol_empresa`;
   const urlPage = `${url}/?page=${page}`;
 
-  const { data: roles, error, isLoading } = useSWR<PaginatedResponse<RolEmpresaList>>(urlPage, apiFetcher);
+  const {
+    data: roles,
+    error,
+    isLoading,
+  } = useSWR<PaginatedResponse<RolEmpresaList>>(urlPage, apiFetcher);
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Deseas eliminar esta rol de cuenta?")) return;
@@ -87,8 +95,7 @@ export default function rolCuentaPage() {
       </div>
     );
 
-  if (!roles)
-    return <div className="text-center p-10">Cargando Roles...</div>;
+  if (!roles) return <div className="text-center p-10">Cargando Roles...</div>;
 
   // Columnas para TableList
   const columns = [
@@ -101,24 +108,30 @@ export default function rolCuentaPage() {
       header: "Acciones",
       render: (rol: RolEmpresaList) => (
         <div className="flex gap-2">
-          <ButtonEdit onClick={() => openEditModal(rol)}>
-            Editar
-          </ButtonEdit>
-          <ButtonDelete onClick={() => handleDelete(rol.id)}>
-            Eliminar
-          </ButtonDelete>
-          <Link
-            href={`/librovivo/configuracion/rol/${rol.id}/asignar_usuario/`}
-            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-          >
-            Asignar rol
-          </Link>
-          <Link
-            href={`/librovivo/configuracion/rol/${rol.id}/asignar_permiso/`}
-            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-          >
-            Asignar permiso
-          </Link>
+          {tienePermiso("editar_rol") && (
+            <ButtonEdit onClick={() => openEditModal(rol)}>Editar</ButtonEdit>
+          )}
+          {tienePermiso("eliminar_rol") && (
+            <ButtonDelete onClick={() => handleDelete(rol.id)}>
+              Eliminar
+            </ButtonDelete>
+          )}
+          {tienePermiso("asignar_rol") && (
+            <Link
+              href={`/librovivo/configuracion/rol/${rol.id}/asignar_usuario/`}
+              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
+            >
+              Asignar rol
+            </Link>
+          )}
+          {tienePermiso("asignar_permiso") && (
+            <Link
+              href={`/librovivo/configuracion/rol/${rol.id}/asignar_permiso/`}
+              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
+            >
+              Asignar permiso
+            </Link>
+          )}
         </div>
       ),
     },
@@ -126,15 +139,17 @@ export default function rolCuentaPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-blue-900 mb-4">Gestión de Roles</h1>
-
-      {/* Botón Crear */}
-      <ButtonInput
-        onClick={() => setShowCreateModal(true)}
-        className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-      >
-        Añadir Rol
-      </ButtonInput>
+      <h1 className="text-2xl font-bold text-blue-900 mb-4">
+        Gestión de Roles
+      </h1>
+      {tienePermiso("crear_rol") && (
+        <ButtonInput
+          onClick={() => setShowCreateModal(true)}
+          className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+        >
+          Añadir Rol
+        </ButtonInput>
+      )}
 
       <TableList
         columns={columns}
@@ -142,9 +157,6 @@ export default function rolCuentaPage() {
         rowKey={(item) => item.id}
         emptyMessage="No se encontraron roles de cuenta registradas."
       />
-
-   
-      
 
       {/* Paginación */}
       <div className="flex justify-center mt-6 gap-2">
@@ -187,6 +199,7 @@ export default function rolCuentaPage() {
               >
                 Cancelar
               </button>
+
               <ButtonInput
                 onClick={handleCreate}
                 disabled={isSubmitting || !formData.nombre}

@@ -10,23 +10,33 @@ import ButtonDelete from "@/components/ButtonDelete";
 import ButtonEdit from "@/components/ButtonEdit";
 import TableList from "@/components/TableList";
 import FormInput from "@/components/FormInput";
+import { usePermisos } from "@/context/PermisoProvider";
 
 export default function ClaseCuentaPage() {
+  const { permisos, tienePermiso } = usePermisos();
   const [page, setPage] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState<ClaseCuentaGet | null>(null);
+  const [showEditModal, setShowEditModal] = useState<ClaseCuentaGet | null>(
+    null
+  );
   const [formData, setFormData] = useState({ codigo: "", nombre: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const url = `/api/cuenta_contable/clase_cuenta/?page=${page}`;
-  const { data: clases, error, isLoading } = useSWR<PaginatedResponse<ClaseCuentaGet>>(url, apiFetcher);
+  const {
+    data: clases,
+    error,
+    isLoading,
+  } = useSWR<PaginatedResponse<ClaseCuentaGet>>(url, apiFetcher);
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Deseas eliminar esta clase de cuenta?")) return;
     setDeletingId(id);
     try {
-      await apiFetcher(`/api/cuenta_contable/clase_cuenta/${id}/`, { method: "DELETE" });
+      await apiFetcher(`/api/cuenta_contable/clase_cuenta/${id}/`, {
+        method: "DELETE",
+      });
       mutate(url);
     } catch (err) {
       console.error(err);
@@ -62,10 +72,16 @@ export default function ClaseCuentaPage() {
     if (!showEditModal) return;
     setIsSubmitting(true);
     try {
-      await apiFetcher(`/api/cuenta_contable/clase_cuenta/${showEditModal.id}/`, {
-        method: "PUT",
-        body: JSON.stringify({ codigo: formData.codigo, nombre: formData.nombre }),
-      });
+      await apiFetcher(
+        `/api/cuenta_contable/clase_cuenta/${showEditModal.id}/`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            codigo: formData.codigo,
+            nombre: formData.nombre,
+          }),
+        }
+      );
       setShowEditModal(null);
       setFormData({ codigo: "", nombre: "" });
       mutate(url);
@@ -106,22 +122,22 @@ export default function ClaseCuentaPage() {
       key: "padre",
       header: "Padre",
       render: (item: ClaseCuentaGet) =>
-        item.padre
-          ? `${item.padre.codigo} - ${item.padre.nombre}`
-          : "—",
+        item.padre ? `${item.padre.codigo} - ${item.padre.nombre}` : "—",
     },
     {
       key: "acciones",
       header: "Acciones",
       render: (item: ClaseCuentaGet) => (
         <div className="flex gap-2">
-          <ButtonEdit onClick={() => openEditModal(item)}>
-          </ButtonEdit>
-          <ButtonDelete
-            onClick={() => handleDelete(item.id)}
-            loading={deletingId === item.id}
-          >
-          </ButtonDelete>
+          {tienePermiso("editar_clase_cuenta") && (
+            <ButtonEdit onClick={() => openEditModal(item)}></ButtonEdit>
+          )}
+          {tienePermiso("eliminar_clase_cuenta") && (
+            <ButtonDelete
+              onClick={() => handleDelete(item.id)}
+              loading={deletingId === item.id}
+            ></ButtonDelete>
+          )}
         </div>
       ),
     },
@@ -129,16 +145,19 @@ export default function ClaseCuentaPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-blue-900 mb-4">Gestión de Clases de Cuenta</h1>
-
+      <h1 className="text-2xl font-bold text-blue-900 mb-4">
+        Gestión de Clases de Cuenta
+      </h1>
+      {tienePermiso("crear_clase_cuenta") && (
+        <ButtonInput
+          type="button"
+          onClick={() => setShowCreateModal(true)}
+          className="inline-block mb-4"
+        >
+          Añadir Clase de Cuenta
+        </ButtonInput>
+      )}
       {/* Botón Crear */}
-      <ButtonInput
-        type="button"
-        onClick={() => setShowCreateModal(true)}
-        className="inline-block mb-4"
-      >
-        Añadir Clase de Cuenta
-      </ButtonInput>
 
       <TableList
         columns={columns}
@@ -232,19 +251,25 @@ export default function ClaseCuentaPage() {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowEditModal(null)}
-                className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Cancelar
-              </button>
-              <ButtonInput
-                onClick={handleEdit}
-                disabled={isSubmitting || !formData.codigo || !formData.nombre}
-                className="bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
-              >
-                {isSubmitting ? "Guardando..." : "Guardar cambios"}
-              </ButtonInput>
+              {tienePermiso("eliminar_clase_cuenta") && (
+                <button
+                  onClick={() => setShowEditModal(null)}
+                  className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cancelar
+                </button>
+              )}
+              {tienePermiso("editar_clase_cuenta") && (
+                <ButtonInput
+                  onClick={handleEdit}
+                  disabled={
+                    isSubmitting || !formData.codigo || !formData.nombre
+                  }
+                  className="bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
+                >
+                  {isSubmitting ? "Guardando..." : "Guardar cambios"}
+                </ButtonInput>
+              )}
             </div>
           </div>
         </div>

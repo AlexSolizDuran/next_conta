@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
       empresa: data.empresa,
       user_empresa: data.user_empresa,
       usuario: data.usuario,
-      roles: data.roles,
+      rol: data.roles,
+      permisos: data.permisos,
       custom: data.custom,
     });
     const cookies = backendResponse.headers.get("set-cookie");

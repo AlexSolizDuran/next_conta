@@ -3,6 +3,7 @@
 import Sidebar from "@/components/Sidebar";
 import { ColoresProvider } from "@/context/ColoresContext";
 import { EstiloProvider, useEstilo } from "@/context/EstiloContext";
+import { PermisosProvider } from "@/context/PermisoProvider";
 
 // Componente interno para aplicar las clases dinámicas
 function AppContent({ children }: { children: React.ReactNode }) {
@@ -16,11 +17,17 @@ function AppContent({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ColoresProvider>
       <EstiloProvider>
-        <AppContent>{children}</AppContent>
+        <PermisosProvider>
+          <AppContent>{children}</AppContent>
+        </PermisosProvider>
       </EstiloProvider>
     </ColoresProvider>
   );

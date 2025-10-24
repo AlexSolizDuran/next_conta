@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { User } from "@/types/auth/user";
 
 export default function Navbar() {
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -14,31 +15,40 @@ export default function Navbar() {
 
   // 🔹 Cargar usuario desde localStorage
   useEffect(() => {
-  const storedUser = localStorage.getItem("usuario");
-  if (storedUser) {
-    const parsedUser: User = JSON.parse(storedUser);
-    setUser(parsedUser);
-  }
-}, []);
+    const storedUser = localStorage.getItem("usuario");
+    if (storedUser) {
+      const parsedUser: User = JSON.parse(storedUser);
+      setUser(parsedUser);
+    }
+  }, []);
 
-
-  const menuItems = [
+  const menuItem = [
     { name: "Empresas", href: "/perfil/mis_empresas" },
     { name: "Configuración", href: "/perfil/configuracion" },
+    { name: "Administrador", href: "/superuser/cliente" },
   ];
 
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST" });
-    localStorage.removeItem("user");
+    localStorage.removeItem("usuario");
     router.push("/");
   };
-
+  const menuItems = menuItem.filter((item) => {
+    // Solo mostrar el link de administrador si el usuario es superuser
+    if (item.name === "Administrador") {
+      return user?.superuser; // true = mostrar, false = ocultar
+    }
+    return true; // los demás items siempre se muestran
+  });
   return (
     <nav className="bg-primario shadow-md fixed w-full top-0 z-50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* LOGO */}
-          <Link href="/perfil/mis_empresas" className="text-xl font-bold text-white">
+          <Link
+            href="/perfil/mis_empresas"
+            className="text-xl font-bold text-white"
+          >
             LibroVivo
           </Link>
 

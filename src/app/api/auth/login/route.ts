@@ -45,7 +45,8 @@ export async function POST(request: Request) {
       nombre: data.nombre,
       apellido: data.apellido,
       email: data.email,
-      access: token
+      superuser: data.superuser,
+      access: token,
     });
     const cookies = backendResponse.headers.get("set-cookie");
     if (cookies) {

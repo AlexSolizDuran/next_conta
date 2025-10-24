@@ -4,4 +4,5 @@ interface PermisoDetail{
     descripcion:string,
 }
 
+
 export type {PermisoDetail}
