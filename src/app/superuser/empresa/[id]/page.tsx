@@ -67,7 +67,7 @@ export default function page({ params }: { params: Promise<{ id: string }> }) {
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>{user.usuario.persona.apellido}</td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>{user.usuario.username}</td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                {user.roles.map(r => r).join(", ")}
+                                {user.roles.map(r => r.nombre).join(", ")}
                             </td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>
                                 <button
