@@ -103,11 +103,7 @@ export default function Sidebar() {
         },
       ],
     },
-    {
-      name: "Reportes",
-      icon: <Clipboard />,
-      href: "/librovivo/reportes",
-    },
+    
   ];
 
   useEffect(() => {
