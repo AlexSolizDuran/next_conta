@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import SuscripcionCard from '@/components/SuscripcionCard';
 import PlanCard from '@/components/PlanCard'; // Importar PlanCard
-import { apiFetcher } from '@/lib/apiFetcher'; 
+import { apiFetcher } from '@/lib/apiFetcher';
 import { SuscripcionData, TipoPlanFull, PlanesDisponiblesResponse } from '@/types/suscripcion/suscripcion'; 
 
 const DashboardPage = () => {

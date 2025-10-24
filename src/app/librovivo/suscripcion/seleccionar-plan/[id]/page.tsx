@@ -3,7 +3,7 @@
 import { use, useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetcher } from "@/lib/apiFetcher";
-import { TipoPlanFull, PaymentRequest, SubscriptionSuccessResponse, PlanesDisponiblesResponse } from "@/types/suscripcion/suscripcion";
+import { TipoPlanFull, PaymentRequest, SubscriptionSuccessResponse, PlanesDisponiblesResponse, LibelulaResponse} from "@/types/suscripcion/suscripcion";
 import FormInput from "@/components/FormInput";
 import ButtonInput from "@/components/ButtonInput";
 // ... (asegúrate de que todos los imports sean correctos)
@@ -120,7 +120,7 @@ export default function SeleccionarPlanPage() {
         return;
     }
 
-    try {
+    {/*try {
       // 3. Llamar al endpoint de activación/pago
       const response = await apiFetcher<SubscriptionSuccessResponse>(
         '/api/suscripcion/confirmar_compra/',
@@ -144,6 +144,41 @@ export default function SeleccionarPlanPage() {
       setTimeout(() => {
         router.push('/librovivo/dashboard');
       }, 3000);
+
+    } catch (err: any) {
+      console.error("Error al confirmar suscripción:", err);
+      // El backend devuelve un JSON de error si falla la validación
+      try {
+          const errorJson = JSON.parse(err.message);
+          const errorMsg = errorJson.detail || Object.values(errorJson)[0][0] || "Error al procesar el pago.";
+          setError(errorMsg);
+      } catch {
+          setError(err.message || "Error al procesar la suscripción. Intente de nuevo.");
+      }
+    } finally {
+      setLoading(false);
+    }*/}
+    try {
+      // 3. Llamar al endpoint de Libélula (ahora devuelve la URL de redirección)
+      const response = await apiFetcher<LibelulaResponse>(
+        '/api/suscripcion/confirmar_compra/',
+        {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }
+      );
+      
+      // 4. Redirección Inmediata a la pasarela de Libélula
+      if (response.url_pasarela_pagos) {
+          // Limpiamos los planes guardados para forzar la recarga del estado del dashboard
+          localStorage.removeItem('availablePlans');
+          // Abrimos la URL de Libélula en la misma ventana
+          window.location.href = response.url_pasarela_pagos;
+      } else{
+          router.push('/librovivo/dashboard');
+          //setError("El servidor no devolvió la URL de la pasarela de pagos.");
+      }
+
 
     } catch (err: any) {
       console.error("Error al confirmar suscripción:", err);

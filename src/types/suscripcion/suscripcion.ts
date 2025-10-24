@@ -71,3 +71,11 @@ export interface SubscriptionSuccessResponse {
     plan_nombre: string;
     fecha_fin_formateada: string; // Puede ser un campo extra del serializer
 }
+export interface LibelulaResponse {
+    // 🚨 Este es el campo más importante. Es la URL a la que el frontend debe redirigir al cliente.
+    url_pasarela_pagos: string; 
+    
+    // Este es el identificador único de la deuda que registramos en Libélula. 
+    // Django lo crea y lo usa como el 'código' de la Suscripción pendiente.
+    id_transaccion: string; 
+}
