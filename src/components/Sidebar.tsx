@@ -13,6 +13,7 @@ import {
   ArrowRightIcon,
   FileIcon,
   StarIcon,
+  Clipboard,
 } from "lucide-react";
 import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
 import Favoritos from "./buttons/ButtonFav";
@@ -101,6 +102,11 @@ export default function Sidebar() {
           permiso: "ver_libro_diario",
         },
       ],
+    },
+    {
+      name: "Reportes",
+      icon: <Clipboard />,
+      href: "/librovivo/reportes",
     },
   ];
 
