@@ -238,10 +238,10 @@ export default function SeleccionarPlanPage() {
         <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
             <h2 className="text-xl font-semibold text-green-800">{planSeleccionado?.plan.nombre}</h2>
             <p className="text-2xl font-bold text-green-900 my-1">
-                ${planSeleccionado.precio.toFixed(2)} 
-                <span className="text-sm font-normal text-green-700"> por {planSeleccionado.duracion_mes} Mes{planSeleccionado.duracion_mes > 1 ? 'es' : ''}</span>
+                ${planSeleccionado?.precio.toFixed(2)} 
+                <span className="text-sm font-normal text-green-700"> por {planSeleccionado?.duracion_mes} Mes{planSeleccionado?.duracion_mes > 1 ? 'es' : ''}</span>
             </p>
-            <p className="text-sm text-gray-600">{planSeleccionado.plan.descripcion}</p>
+            <p className="text-sm text-gray-600">{planSeleccionado?.plan.descripcion}</p>
         </div>
         
         {error && <div className="text-red-600 text-sm text-center mb-4">{error}</div>}
