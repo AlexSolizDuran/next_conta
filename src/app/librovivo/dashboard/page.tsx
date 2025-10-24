@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { DashboardContent } from "@/components/DashSuscripcion";
+import DashboardContent from "../../../components/DashSuscripcion"
 
 type Interpretacion = {
   tipo_reporte?:
