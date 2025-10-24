@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.API_URL;
 
 // --- CONFIGURACIÓN DE TOKENS Y ENDPOINTS ---
 const ACCESS_TOKEN_COOKIE = "sessionToken";
-const REPORT_ENDPOINT = "/ia/generar-reporte/"; // Endpoint de reporte en Django
+const REPORT_ENDPOINT = "/generar-reporte/"; // Endpoint de reporte en Django
 // Se ha eliminado: REFRESH_TOKEN_COOKIE y REFRESH_ENDPOINT
 // ------------------------------------------
 

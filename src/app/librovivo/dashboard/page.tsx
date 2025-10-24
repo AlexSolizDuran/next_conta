@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import DashboardContent from "../../../components/DashSuscripcion"
+import DashboardContent from "@/components/DashSuscripcion"
 
 type Interpretacion = {
   tipo_reporte?:
@@ -428,7 +428,6 @@ export default function Page(): React.ReactElement {
 
     return (
       <div>
-        <DashboardContent />
         <div className="bg-white border rounded shadow-sm p-4">
           <h4 className="font-semibold text-lg mb-4">
             Estado de Resultados
@@ -639,6 +638,7 @@ export default function Page(): React.ReactElement {
 
   return (
     <main className="p-4 max-w-6xl mx-auto font-sans">
+      <DashboardContent />
       <style jsx global>{`
         html {
           font-family: "Inter", sans-serif;
