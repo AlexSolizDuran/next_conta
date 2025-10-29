@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import DashboardContent from "@/components/DashSuscripcion"
+import useSWR from 'swr';
+import { apiFetcher } from '@/lib/apiFetcher';
+import { SuscripcionData, TipoPlanFull } from '@/types/suscripcion/suscripcion';
 
 type Interpretacion = {
   tipo_reporte?:
@@ -51,10 +54,37 @@ const EXAMPLES: { title: string; tipo: string; text: string }[] = [
 
 export default function Page(): React.ReactElement {
   const [input, setInput] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+
+  const [loadingIA, setLoadingIA] = useState<boolean>(false);
+  const [errorIA, setErrorIA] = useState<string | null>(null);
+
   const [result, setResult] = useState<ReporteResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const {
+    data: suscripcion,
+    error: suscripcionError,
+    isLoading: loadingSuscripcion // Renombrado
+  } = useSWR<SuscripcionData>('/api/suscripcion/activa/', apiFetcher);
+
+  const [showContent, setShowContent] = useState<boolean | null>(null); // null = cargando, true = mostrar, false = ocultar
+
+  useEffect(() => {
+    if (loadingSuscripcion) {
+      setShowContent(null); // Aún cargando
+      return;
+    }
+    if (suscripcionError || !suscripcion) {
+      // Si hay error o no hay suscripción activa, no mostrar
+      setShowContent(false);
+      return;
+    }
+
+    // Comprobar si el plan permite IA (cant_consultas_ia NO es null)
+    const permiteIA = suscripcion?.plan?.caracteristica?.cant_consultas_ia !== null;
+    setShowContent(permiteIA);
+
+  }, [suscripcion, suscripcionError, loadingSuscripcion]);
 
   useEffect(() => {
     if (!notice) return;
@@ -66,21 +96,21 @@ export default function Page(): React.ReactElement {
 
   const handleExampleClick = (text: string) => {
     setInput(text);
-    setError(null);
+    setErrorIA(null);
     setNotice("Ejemplo cargado en el campo de solicitud");
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setError(null);
+    setErrorIA(null);
     setResult(null);
 
     if (!validate(input)) {
-      setError("La solicitud debe tener al menos 10 caracteres.");
+      setErrorIA("La solicitud debe tener al menos 10 caracteres.");
       return;
     }
 
-    setLoading(true);
+    setLoadingIA(true);
     try {
       // El manejo del token lo realiza el proxy de Next.js
       const res = await fetch(ENDPOINT, {
@@ -104,9 +134,9 @@ export default function Page(): React.ReactElement {
       setNotice("Reporte generado satisfactoriamente");
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Error de comunicación con el servidor.");
+      setErrorIA(err?.message || "Error de comunicación con el servidor.");
     } finally {
-      setLoading(false);
+      setLoadingIA(false);
     }
   };
 
@@ -126,9 +156,10 @@ export default function Page(): React.ReactElement {
 
   const exportPDF = async () => {
     if (!result) {
-      setError("No hay reporte para exportar.");
+      setErrorIA("No hay reporte para exportar.");
       return;
     }
+    setErrorIA(null);
     try {
       const jsPDFModule: any = await import("jspdf");
       const jsPDFConstructor =
@@ -221,15 +252,16 @@ export default function Page(): React.ReactElement {
       setNotice("PDF generado");
     } catch (err) {
       console.error(err);
-      setError("Error al exportar PDF.");
+      setErrorIA("Error al exportar PDF.");
     }
   };
 
   const exportExcel = async () => {
     if (!result) {
-      setError("No hay reporte para exportar.");
+      setErrorIA("No hay reporte para exportar.");
       return;
     }
+    setErrorIA(null);
     try {
       const XLSXModule: any = await import("xlsx");
       const XLSX = XLSXModule?.default ?? XLSXModule;
@@ -331,7 +363,7 @@ export default function Page(): React.ReactElement {
       setNotice("Excel generado");
     } catch (err) {
       console.error(err);
-      setError("Error al exportar Excel.");
+      setErrorIA("Error al exportar Excel.");
     }
   };
 
@@ -633,12 +665,32 @@ export default function Page(): React.ReactElement {
     );
   };
 
-  const tipoReporte =
-    result?.reporte?.tipo || result?.interpretacion?.tipo_reporte;
+  if (showContent === null) {
+      // Estado de carga mientras se verifica la suscripción
+      return (
+          <main className="p-4 max-w-6xl mx-auto font-sans flex justify-center items-center h-screen">
+              <p className="text-gray-500">Verificando suscripción...</p>
+              {/* O un spinner más elaborado */}
+          </main>
+      );
+  }
 
+  if (showContent === false) {
+      // Estado si el plan es gratuito o hay error de suscripción
+      return (
+          <main className="p-4 max-w-6xl mx-auto font-sans flex flex-col justify-center items-center h-screen text-center">
+               <h1 className="text-2xl font-bold text-orange-600 mb-4">Acceso Limitado</h1>
+               <p className="text-gray-600 mb-6">
+                  La función de Generador de Reportes con IA no está disponible en tu plan actual.
+               </p>
+          </main>
+      );
+  }
+  const tipoReporte = result?.reporte?.tipo || result?.interpretacion?.tipo_reporte;
+
+  
   return (
     <main className="p-4 max-w-6xl mx-auto font-sans">
-      <DashboardContent />
       <style jsx global>{`
         html {
           font-family: "Inter", sans-serif;
@@ -648,9 +700,12 @@ export default function Page(): React.ReactElement {
         <h1 className="text-2xl font-bold text-gray-800">
           Generador de Reportes con IA
         </h1>
-        <div className="text-sm text-gray-500">
-          Solicita reportes contables usando lenguaje natural.
-        </div>
+        {/* Mostrar consultas restantes si están disponibles */}
+        {suscripcion?.consultas_ia_restantes !== null && suscripcion?.consultas_ia_restantes !== undefined && (
+             <div className="text-sm text-blue-700 font-medium">
+               Consultas IA restantes: {suscripcion.consultas_ia_restantes ?? 'Ilimitadas'}
+             </div>
+        )}
       </div>
 
       {/* notifications */}
@@ -659,18 +714,20 @@ export default function Page(): React.ReactElement {
           {notice}
         </div>
       )}
-      {error && (
+      {errorIA && (
         <div className="mt-4 p-3 bg-red-100 text-red-800 border border-red-200 rounded-lg shadow-md">
-          {error}
+          {errorIA}
         </div>
       )}
 
+      {/* --- FORMULARIO Y EJEMPLOS --- */}
       <section className="mt-6 grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6">
         <form
           className="space-y-4 bg-white p-5 rounded-lg border shadow-lg"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit} // Asegúrate que handleSubmit use setLoadingIA y setErrorIA
         >
-          <label
+          {/* ... (contenido del formulario sin cambios, usa loadingIA) ... */}
+           <label
             htmlFor="solicitud"
             className="font-semibold text-lg text-gray-700 block"
           >
@@ -692,32 +749,10 @@ export default function Page(): React.ReactElement {
             <button
               type="submit"
               className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white font-medium px-6 py-2.5 rounded-xl shadow-md hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={loading || !validate(input)}
+              disabled={loadingIA || !validate(input)}
             >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Generando...
-                </>
+              {loadingIA ? ( 
+                <>Generando...</>
               ) : (
                 "Generar Reporte"
               )}
@@ -752,11 +787,12 @@ export default function Page(): React.ReactElement {
         </aside>
       </section>
 
+      {/* --- SECCIÓN DE RESULTADOS --- */}
       <section className="mt-8">
-        {!result && !loading && (
+         {/* Usa loadingIA para el mensaje inicial */}
+        {!result && !loadingIA && (
           <div className="text-gray-500 text-center p-8 border border-dashed rounded-lg bg-white shadow-sm">
-            Aquí se mostrará el reporte contable generado por la Inteligencia
-            Artificial.
+            Aquí se mostrará el reporte contable generado por la Inteligencia Artificial.
           </div>
         )}
 

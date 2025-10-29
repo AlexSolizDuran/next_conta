@@ -175,7 +175,7 @@ export default function SeleccionarPlanPage() {
           // Abrimos la URL de Libélula en la misma ventana
           window.location.href = response.url_pasarela_pagos;
       } else{
-          router.push('/librovivo/dashboard');
+          router.push('/perfil/mis_empresas');
           //setError("El servidor no devolvió la URL de la pasarela de pagos.");
       }
 
@@ -221,7 +221,7 @@ export default function SeleccionarPlanPage() {
               <p className="text-gray-700">Tu plan **{success.plan_nombre}** está activo.</p>
               <p className="text-sm text-gray-500 mt-2">Código de Suscripción: {success.codigo}</p>
               <p className="text-sm text-gray-500">Fecha de Vencimiento: {success.fecha_fin_formateada}</p>
-              <ButtonInput onClick={() => router.push('/librovivo/dashboard')} className="mt-6">Ir al Dashboard</ButtonInput>
+              <ButtonInput onClick={() => router.push('/perfil/mis_empresas')} className="mt-6">Ir al Dashboard</ButtonInput>
           </div>
       );
   }

@@ -8,6 +8,7 @@ interface CaracteristicaData {
     funcionalidad: string;
     cant_empresas: number | null;
     cant_colab: number | null;
+    cant_consultas_ia: number | null;
 }
 
 interface TipoPlanData {
