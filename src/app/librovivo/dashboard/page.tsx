@@ -428,7 +428,7 @@ export default function Page(): React.ReactElement {
 
     return (
       <div>
-        <DashboardContent />
+        
         <div className="bg-white border rounded shadow-sm p-4">
           <h4 className="font-semibold text-lg mb-4">
             Estado de Resultados
@@ -644,6 +644,9 @@ export default function Page(): React.ReactElement {
           font-family: "Inter", sans-serif;
         }
       `}</style>
+      <div>
+        <DashboardContent></DashboardContent>
+      </div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-800">
           Generador de Reportes con IA

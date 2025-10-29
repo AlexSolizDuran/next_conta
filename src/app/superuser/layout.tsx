@@ -8,6 +8,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const authChannel = new BroadcastChannel("auth_channel");
+
+  authChannel.onmessage = (event) => {
+    if (event.data === "logout") {
+      // 🔔 ¡Acción actualizada!
+      // Al recibir el aviso, redirige a la raíz
+      window.location.href = "/login";
+    }
+  };
   return (
     <div className={`flex h-screen bg-gray-50 `}>
           <SideBar />

@@ -25,12 +25,12 @@ export default function SideBar() {
     fetch("/api/logout", {
       method: "POST",
     });
-    router.push("/");
+    const authChannel = new BroadcastChannel('auth_channel');
+    authChannel.postMessage('logout');
   };
   const adminItems = [
     { name: "Usuarios", href: "/superuser/cliente", icon: <UsersIcon /> },
     { name: "Empresas", href: "/superuser/empresa", icon: <AlbumIcon /> },
-    { name: "Plan de Suscripcion", href: "/superuser/plan_suscripcion", icon: <EuroIcon /> },
     
   ]
     

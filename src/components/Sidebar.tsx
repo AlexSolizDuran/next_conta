@@ -48,10 +48,12 @@ export default function Sidebar() {
   const [openMenu, setOpenMenu] = useState(false);
   const router = useRouter();
   const handleLogout = () => {
-    fetch("/api/logout", {
+    fetch("/api/auth/logout", {
       method: "POST",
     });
-    router.push("/");
+    const authChannel = new BroadcastChannel('auth_channel');
+    authChannel.postMessage('logout');
+    
   };
   const adminItems: MenuItem[] = [
     { name: "Panel", href: "/librovivo/dashboard", icon: <UsersIcon /> },

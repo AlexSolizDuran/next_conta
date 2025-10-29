@@ -30,8 +30,8 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST" });
-    localStorage.removeItem("usuario");
-    router.push("/");
+    const authChannel = new BroadcastChannel('auth_channel');
+    authChannel.postMessage('logout');
   };
   const menuItems = menuItem.filter((item) => {
     // Solo mostrar el link de administrador si el usuario es superuser
