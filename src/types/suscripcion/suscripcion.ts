@@ -38,10 +38,10 @@ export interface PlanesDisponiblesResponse {
     planes_disponibles: TipoPlanFull[];
 }
 
-export interface SuscripcionData {
+//export interface SuscripcionData {
     // ... (campos de suscripción)
-    plan: TipoPlanFull; // Plan ahora es TipoPlanFull
-}
+//    plan: TipoPlanFull; // Plan ahora es TipoPlanFull
+//}
 
 export interface SuscripcionData {
     id: string;
