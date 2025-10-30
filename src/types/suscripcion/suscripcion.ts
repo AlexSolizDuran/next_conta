@@ -51,8 +51,10 @@ export interface SuscripcionData {
     dia_restante: number;
     empresa_disponible: number | null;
     colab_disponible: number | null;
+    consultas_ia_restantes: number | null;
     estado: EstadoData;
     plan: TipoPlanFull; //Este objeto contiene todo
+    user: string;
 }
 
 // Request para el pago

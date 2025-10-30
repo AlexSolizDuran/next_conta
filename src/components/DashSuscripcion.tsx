@@ -172,7 +172,7 @@ const DashboardContent = () => {
               diasRestantes={typeof suscripcion.dia_restante === 'number' ? suscripcion.dia_restante : 0}
               empresasDisponibles={suscripcion.empresa_disponible ?? 0}
               cantidadColaboradores={suscripcion.colab_disponible ?? 0}
-              cantidadConsultasIA={showAISection ? (suscripcion.plan.caracteristica.cant_consultas_ia ?? 0) : 0}  
+              cantidadConsultasIA={showAISection ? (suscripcion.consultas_ia_restantes ?? 0) : 0}  
             />
           </div>
         </div>
