@@ -8,6 +8,7 @@ interface CaracteristicaData {
     funcionalidad: string;
     cant_empresas: number | null;
     cant_colab: number | null;
+    cant_consultas_ia: number | null;
 }
 
 interface TipoPlanData {
@@ -37,10 +38,10 @@ export interface PlanesDisponiblesResponse {
     planes_disponibles: TipoPlanFull[];
 }
 
-export interface SuscripcionData {
+//export interface SuscripcionData {
     // ... (campos de suscripción)
-    plan: TipoPlanFull; // Plan ahora es TipoPlanFull
-}
+//    plan: TipoPlanFull; // Plan ahora es TipoPlanFull
+//}
 
 export interface SuscripcionData {
     id: string;
@@ -50,8 +51,10 @@ export interface SuscripcionData {
     dia_restante: number;
     empresa_disponible: number | null;
     colab_disponible: number | null;
+    consultas_ia_restantes: number | null;
     estado: EstadoData;
     plan: TipoPlanFull; //Este objeto contiene todo
+    user: string;
 }
 
 // Request para el pago

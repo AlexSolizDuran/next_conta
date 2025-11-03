@@ -9,7 +9,6 @@ import React from 'react';
  * Deberás reemplazar estos datos con la información real obtenida de tu backend.
  * 
  * Busca el archivo donde quieras usar esta tarjeta (por ejemplo, `src/app/perfil/suscripciones/page.tsx`)
- * y sigue las indicaciones que te dejé en el chat para integrarlo con datos reales.
  */
 
 interface SuscripcionCardProps {
@@ -20,6 +19,8 @@ interface SuscripcionCardProps {
   codigoSuscripcion: string;
   diasRestantes: number;
   empresasDisponibles: number;
+  cantidadColaboradores: number;
+  cantidadConsultasIA: number | null;
 }
 
 const SuscripcionCard: React.FC<SuscripcionCardProps> = ({
@@ -30,6 +31,8 @@ const SuscripcionCard: React.FC<SuscripcionCardProps> = ({
   codigoSuscripcion,
   diasRestantes,
   empresasDisponibles,
+  cantidadColaboradores,
+  cantidadConsultasIA,
 }) => {
   // Lógica para determinar el color de los días restantes
   const diasRestantesColor = diasRestantes < 15 ? 'text-red-500' : 'text-green-600';
@@ -66,6 +69,20 @@ const SuscripcionCard: React.FC<SuscripcionCardProps> = ({
                 </div>
             </div>
         </div>
+
+        <div className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+            <div>
+              <p className="font-semibold">Colaboradores Disponibles</p>
+              <p className="text-3xl font-bold text-gray-900">{cantidadColaboradores}</p>
+            </div>
+            <div>
+              <p className="font-semibold">Consultas IA Restantes</p>
+              <p className="text-3xl font-bold text-gray-900">{cantidadConsultasIA}</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
