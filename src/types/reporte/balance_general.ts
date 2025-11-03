@@ -1,5 +1,5 @@
 export interface BalanceCuenta {
-  codigo: number;
+  codigo: number | string;
   nombre: string;
   total_debe: number;
   total_haber: number;

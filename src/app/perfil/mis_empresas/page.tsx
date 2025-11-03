@@ -147,7 +147,9 @@ export default function EmpresasPage() {
             )}
 
             {error && (
-              <div className="text-red-600 text-sm text-center mt-3">{error}</div>
+              <div className="text-red-600 text-sm text-center mt-3">
+                {error}
+              </div>
             )}
 
             {!empresasLoading && empresas?.length === 0 && (
