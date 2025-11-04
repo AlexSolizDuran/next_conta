@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Login } from '@/types/auth/login';
 import { apiFetcher } from '@/lib/apiFetcher';
 import { User } from '@/types/auth/user';
 import FormInput from '@/components/FormInput';
 import ButtonInput from '@/components/ButtonInput';
+
+// Site Key de reCAPTCHA - Configurada en .env.local
+// Variable: NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
 
 export default function LoginPage() {
   const [loginData, setLoginData] = useState<Login>({
@@ -16,6 +21,8 @@ export default function LoginPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,15 +32,30 @@ export default function LoginPage() {
     });
   };
 
+  // Callback cuando el usuario completa el reCAPTCHA
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    // Validar reCAPTCHA
+    if (!recaptchaToken) {
+      setError('Por favor, completa el reCAPTCHA');
+      setLoading(false);
+      return;
+    }
+
     try {
       const result = await apiFetcher<User>('/api/auth/login/', {
         method: 'POST',
-        body: JSON.stringify(loginData),
+        body: JSON.stringify({
+          ...loginData,
+          recaptcha_token: recaptchaToken,
+        }),
       });
       localStorage.setItem("usuario", JSON.stringify(result));
       console.log(result)
@@ -41,11 +63,17 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error('Error en el login:', err);
 
-      if (err.message) {
+      if (err instanceof Error && err.message) {
         setError(err.message);
       } else {
         setError('Error de conexión. Verifica que el servidor esté funcionando.');
       }
+
+      // Resetear reCAPTCHA en caso de error para que el usuario pueda intentar de nuevo
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+      setRecaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -90,6 +118,21 @@ export default function LoginPage() {
           {error && (
             <div className="text-red-600 text-sm text-center">{error}</div>
           )}
+
+          {/* Widget de reCAPTCHA - Checkbox "No soy un robot" */}
+          <div className="flex justify-center">
+            {RECAPTCHA_SITE_KEY ? (
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                onChange={handleRecaptchaChange}
+              />
+            ) : (
+              <div className="text-yellow-600 text-xs text-center">
+                reCAPTCHA no configurado (falta NEXT_PUBLIC_RECAPTCHA_SITE_KEY)
+              </div>
+            )}
+          </div>
 
           <div>
             <ButtonInput
