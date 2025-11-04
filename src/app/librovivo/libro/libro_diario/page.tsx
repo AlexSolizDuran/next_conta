@@ -126,7 +126,7 @@ export default function MovimientosPage() {
       render: (mov: LibroDiario) => (
         <Link
           href={`/librovivo/asiento_contable/asiento/${mov.asiento?.id}`}
-          className="flex items-center gap-2 text-blue-600 hover:underline"
+          className="flex items-center gap-2 text-blue- hover:underline"
         >
           <Eye className="w-5 h-5" />
         </Link>

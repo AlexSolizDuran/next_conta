@@ -105,7 +105,20 @@ export default function Sidebar() {
         },
       ],
     },
-    
+    {
+      name: "Reportes",
+      icon: <FileTextIcon />,
+      children: [
+        {
+          name: "Balance General",
+          href: "/librovivo/reporte/balance_general",
+        },
+        {
+          name: "Estado de Resultados",
+          href: "/librovivo/reporte/estado_resultados",
+        },
+      ],
+    },
   ];
 
   useEffect(() => {

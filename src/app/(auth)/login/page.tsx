@@ -12,7 +12,7 @@ import ButtonInput from '@/components/ButtonInput';
 
 // Site Key de reCAPTCHA - Configurada en .env.local
 // Variable: NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
+const RECAPTCHA_SITE_KEY = "6LdDrfwrAAAAAHjLJe4zzSV2OiC16bU05UkqV8HL";
 
 export default function LoginPage() {
   const [loginData, setLoginData] = useState<Login>({
