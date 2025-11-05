@@ -61,11 +61,13 @@ export default function RegisterPage() {
     setError("");
 
     // Validar reCAPTCHA
+    /*
     if (!recaptchaToken) {
       setError("Por favor, completa el reCAPTCHA");
       setLoading(false);
       return;
     }
+      */
 
     try {
       const response = await fetch(`api/auth/register/`, {

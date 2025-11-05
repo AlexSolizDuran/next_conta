@@ -43,12 +43,13 @@ export default function LoginPage() {
     setError('');
 
     // Validar reCAPTCHA
+    /*
     if (!recaptchaToken) {
       setError('Por favor, completa el reCAPTCHA');
       setLoading(false);
       return;
     }
-
+*/
     try {
       const result = await apiFetcher<User>('/api/auth/login/', {
         method: 'POST',
