@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User } from "@/types/auth/user";
 import {
   Home as HomeIcon,
   User as UserIcon,

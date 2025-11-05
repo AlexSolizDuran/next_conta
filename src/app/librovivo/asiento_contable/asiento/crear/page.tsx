@@ -215,7 +215,7 @@ export default function CrearAsientoPage() {
       } else {
         setAiError(
           response.error ||
-            "La IA no pudo predecir el asiento (confianza baja o falta el monto)."
+            "La IA no pudo predecir el asiento (confianza baja )."
         );
       }
     } catch (err: any) {
@@ -401,7 +401,6 @@ export default function CrearAsientoPage() {
                           type="text"
                           inputMode="decimal"
                           // CORRECCIÓN 2: Permitir decimales
-                          pattern="[0-9]*[.,]?[0-9]*"
                           value={
                             mov.debe === 0
                               ? ""
@@ -423,7 +422,6 @@ export default function CrearAsientoPage() {
                           type="text"
                           inputMode="decimal"
                           // CORRECCIÓN 2: Permitir decimales
-                          pattern="[0-9]*[.,]?[0-9]*"
                           value={
                             mov.haber === 0
                               ? ""
