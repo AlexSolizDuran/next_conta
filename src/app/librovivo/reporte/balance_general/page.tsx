@@ -106,7 +106,10 @@ export default function BalanceGeneralPage() {
     `/api/reporte/balance_general/?fecha_inicio=${fechaInicioAplicada}&fecha_fin=${fechaFinAplicada}`,
     apiFetcher
   );
-
+  // --- ¡DEBUG POINT 1: MIRA AQUÍ! ---
+  // Esto te mostrará en la consola del navegador los datos tal como llegaron
+  console.log("Datos recibidos de la API (data):", data);
+  // --- FIN DEBUG ---
   // Función para generar el reporte
   const handleGenerar = () => {
     setFechaInicioAplicada(fechaInicio);
@@ -225,12 +228,22 @@ export default function BalanceGeneralPage() {
 
     const activos = sumRoots(clasificadas.activos);
     const pasivosBruto = sumRoots(clasificadas.pasivos);
-    const patrimonioBruto = sumRoots(clasificadas.patrimonio);
+    const patrimonioBruto = sumRoots(clasificadas.patrimonio) ;
 
     // Si el backend define saldo = debe - haber, los pasivos/patrimonio suelen ser negativos.
     const pasivos = Math.abs(pasivosBruto);
     const patrimonio = Math.abs(patrimonioBruto);
-
+    // --- ¡DEBUG POINT 2: MIRA AQUÍ! ---
+    console.log("================ DEBUG FRONTEND ================");
+    console.log("Data de Activos:", clasificadas.activos);
+    console.log("Data de Pasivos:", clasificadas.pasivos);
+    console.log("Data de Patrimonio:", clasificadas.patrimonio);
+    console.log("------------------------------------------------");
+    console.log("Total Saldo Activos (Calculado):", activos);
+    console.log("Total Saldo Pasivos (Bruto):", pasivosBruto);
+    console.log("Total Saldo Patrimonio (Bruto):", patrimonioBruto); // <-- Este es el valor que sospechamos
+    console.log("================================================");
+    // --- FIN DEBUG ---
     return {
       activos,
       pasivos,
