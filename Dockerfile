@@ -1,6 +1,6 @@
 #nextjs docker
 #build
-#15/10/2025-nuevocommit
+#04/11/2025 sprint 3
 FROM node:18-alpine AS builder
 WORKDIR /app
 
