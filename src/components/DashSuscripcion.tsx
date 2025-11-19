@@ -18,52 +18,85 @@ const DashboardContent = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAISection, setShowAISection] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchSuscripcionData = async () => {
-      setPlanesDisponibles(null); // Resetear
-      setLoading(true); // Indicar inicio de carga
-      setError(null); // Limpiar errores previos
+  // -----------------------------------------------------------
+  // 1. Función para cargar o refrescar los datos de la suscripción
+  // -----------------------------------------------------------
+  const fetchSuscripcionData = async () => {
+    setPlanesDisponibles(null); // Resetear
+    setLoading(true); // Indicar inicio de carga
+    setError(null); // Limpiar errores previos
+    try {
+      // La ruta de la API sigue siendo la misma
+      const data = await apiFetcher<SuscripcionData>('/api/suscripcion/activa/');
+      setSuscripcion(data);
+      setError(null); // Limpia error si se encuentra la suscripcion
+      const permiteIA = data?.plan?.caracteristica?.cant_consultas_ia !== null && data?.plan?.caracteristica?.cant_consultas_ia !== 0;
+      setShowAISection(permiteIA);
+    } catch (err: any) {
+      console.error("Error al cargar los datos de la suscripción:", err);
+      // 🚨 Manejo de la respuesta 404 especial del backend
       try {
-        // La ruta de la API sigue siendo la misma
-        const data = await apiFetcher<SuscripcionData>('/api/suscripcion/activa/');
-        setSuscripcion(data);
-        setError(null); // Limpia error si se encuentra la suscripcion
-        const permiteIA = data?.plan?.caracteristica?.cant_consultas_ia !== null && data?.plan?.caracteristica?.cant_consultas_ia !== 0;
-        setShowAISection(permiteIA);
-      } catch (err: any) {
-        console.error("Error al cargar los datos de la suscripción:", err);
-        // 🚨 Manejo de la respuesta 404 especial del backend
-        try {
-          const errorResponse: PlanesDisponiblesResponse = JSON.parse(err.message);
-          // Verifica si la respuesta contiene la propiedad 'planes_disponibles'
-          if (errorResponse && errorResponse.planes_disponibles && Array.isArray(errorResponse.planes_disponibles)) {
-            // Si la contiene, establecemos los planes y mostramos las tarjetas.
-            setPlanesDisponibles(errorResponse.planes_disponibles);
-            // Guarda los planes en localStorage para usarlos en la página de selección
-            localStorage.setItem('availablePlans', JSON.stringify(errorResponse.planes_disponibles));
-            setError("No se encontró suscripción activa."); // Mensaje específico para este caso
-            setSuscripcion(null);
-            // No necesitamos retornar aquí explícitamente, el finally se ejecutará
-          } else {
-            // Si no tiene 'planes_disponibles', lanzar un error para que lo capture el catch externo
-            throw new Error("Respuesta de error 404 no contiene planes disponibles.");
-          }
-        } catch (parseError) {
-          // Captura errores al parsear JSON o si la estructura no es la esperada
-          console.error("Error al procesar la respuesta de error:", parseError);
-          // Establecer el mensaje de error original o uno genérico
-          setError(err.message || "Ocurrió un error inesperado al cargar la suscripción.");
+        const errorResponse: PlanesDisponiblesResponse = JSON.parse(err.message);
+        // Verifica si la respuesta contiene la propiedad 'planes_disponibles'
+        if (errorResponse && errorResponse.planes_disponibles && Array.isArray(errorResponse.planes_disponibles)) {
+          // Si la contiene, establecemos los planes y mostramos las tarjetas.
+          setPlanesDisponibles(errorResponse.planes_disponibles);
+          // Guarda los planes en localStorage para usarlos en la página de selección
+          localStorage.setItem('availablePlans', JSON.stringify(errorResponse.planes_disponibles));
+          setError("No se encontró suscripción activa."); // Mensaje específico para este caso
           setSuscripcion(null);
-          setPlanesDisponibles(null); // Asegurar que no se muestren planes si hubo error
+        } else {
+          // Si no tiene 'planes_disponibles', lanzar un error para que lo capture el catch externo
+          throw new Error("Respuesta de error 404 no contiene planes disponibles.");
         }
-        setShowAISection(false);
-      } finally {
-        setLoading(false); // Indicar fin de carga, ya sea éxito o error
+      } catch (parseError) {
+        // Captura errores al parsear JSON o si la estructura no es la esperada
+        console.error("Error al procesar la respuesta de error:", parseError);
+        // Establecer el mensaje de error original o uno genérico
+        setError(err.message || "Ocurrió un error inesperado al cargar la suscripción.");
+        setSuscripcion(null);
+        setPlanesDisponibles(null); // Asegurar que no se muestren planes si hubo error
       }
-    };
+      setShowAISection(false);
+    } finally {
+      setLoading(false); // Indicar fin de carga, ya sea éxito o error
+    }
+  };
 
+  // -----------------------------------------------------------
+  // 2. NUEVA FUNCIÓN: Manejar la cancelación de la suscripción
+  // -----------------------------------------------------------
+  const handleCancelSubscription = async () => {
+    setLoading(true);
+    try {
+      // La llamada POST al endpoint de cancelación
+      // Asumimos que apiFetcher puede manejar solicitudes POST con el segundo argumento de configuración.
+      await apiFetcher('/api/suscripcion/cancelar/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // El endpoint no requiere un cuerpo, pero se pasa un objeto vacío si es necesario para la configuración
+        body: JSON.stringify({}),
+      });
+
+      alert('Suscripción cancelada exitosamente. Por favor, seleccione un nuevo plan.');
+
+      // Forzar la recarga de los datos. Esto resultará en una respuesta 404 
+      // del backend, lo que a su vez hará que la lógica muestre los planes disponibles.
+      await fetchSuscripcionData();
+    } catch (error: any) {
+      const errorMessage = error.message || 'Error al conectar con el servidor.';
+      alert(`Error al cancelar la suscripción: ${errorMessage}`);
+      console.error('Error de cancelación:', error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchSuscripcionData();
-  }, []); // El array vacío asegura que se ejecute solo al montar el componente
+  }, []);
+
 
   // --- Renderizado Condicional ---
 
@@ -151,7 +184,7 @@ const DashboardContent = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           <div className="lg:col-span-2">
-            
+
             <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-4">Estadísticas Principales</h2>
               {/* datos extras */}
@@ -172,7 +205,8 @@ const DashboardContent = () => {
               diasRestantes={typeof suscripcion.dia_restante === 'number' ? suscripcion.dia_restante : 0}
               empresasDisponibles={suscripcion.empresa_disponible ?? 0}
               cantidadColaboradores={suscripcion.colab_disponible ?? 0}
-              cantidadConsultasIA={showAISection ? (suscripcion.consultas_ia_restantes ?? 0) : 0}  
+              cantidadConsultasIA={showAISection ? (suscripcion.consultas_ia_restantes ?? 0) : 0}
+              onCancelSubscriotion={handleCancelSubscription}
             />
           </div>
         </div>

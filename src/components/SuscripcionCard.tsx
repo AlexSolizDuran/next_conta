@@ -21,6 +21,7 @@ interface SuscripcionCardProps {
   empresasDisponibles: number;
   cantidadColaboradores: number;
   cantidadConsultasIA: number | null;
+  onCancelSubscriotion?: () => void;
 }
 
 const SuscripcionCard: React.FC<SuscripcionCardProps> = ({
@@ -33,9 +34,18 @@ const SuscripcionCard: React.FC<SuscripcionCardProps> = ({
   empresasDisponibles,
   cantidadColaboradores,
   cantidadConsultasIA,
+  onCancelSubscriotion,
 }) => {
   // Lógica para determinar el color de los días restantes
   const diasRestantesColor = diasRestantes < 15 ? 'text-red-500' : 'text-green-600';
+
+  const handleCancel = () => {
+    if (onCancelSubscriotion){
+      if (window.confirm("¿Está seguro que desea cancelar su suscripción activa?")){
+        onCancelSubscriotion();
+      }
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl border border-gray-200 font-sans">
@@ -82,7 +92,20 @@ const SuscripcionCard: React.FC<SuscripcionCardProps> = ({
             </div>
           </div>
         </div>
-
+        {/* BOTÓN DE CANCELACIÓN: Solo se muestra si la prop onCancelSubscription es proporcionada */}
+        {diasRestantes > 0 && onCancelSubscriotion && (
+            <div className="mt-8 pt-6 border-t border-gray-200">
+                <button
+                    onClick={handleCancel}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out"
+                >
+                    Cancelar Suscripción
+                </button>
+                <p className="mt-2 text-sm text-gray-500 text-center">
+                    La cancelación marcará su plan como inactivo, permitiéndole cambiar a uno nuevo.
+                </p>
+            </div>
+        )}
       </div>
     </div>
   );
