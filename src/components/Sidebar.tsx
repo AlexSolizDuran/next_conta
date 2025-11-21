@@ -13,6 +13,7 @@ import {
   FileIcon,
   StarIcon,
   Clipboard,
+  HelpCircle,
 } from "lucide-react";
 import { UserEmpresaData } from "@/types/empresa/user_empresa_data";
 import Favoritos from "./buttons/ButtonFav";
@@ -50,9 +51,8 @@ export default function Sidebar() {
     fetch("/api/auth/logout", {
       method: "POST",
     });
-    const authChannel = new BroadcastChannel('auth_channel');
-    authChannel.postMessage('logout');
-    
+    const authChannel = new BroadcastChannel("auth_channel");
+    authChannel.postMessage("logout");
   };
   const adminItems: MenuItem[] = [
     { name: "Panel", href: "/librovivo/dashboard", icon: <UsersIcon /> },
@@ -156,13 +156,24 @@ export default function Sidebar() {
       >
         <div className="flex items-center justify-between p-3   ">
           <h1 className="font-bold text-gray-800 dark:text-white">Menu</h1>
-          <button
-            className="md:hidden p-2 text-gray-600 dark:text-gray-300"
-            onClick={() => setOpen(false)}
-            aria-label="Cerrar menú"
-          >
-            <CloseIcon />
-          </button>
+          <div>
+            <Link
+              href="https://drive.google.com/drive/folders/1EQt_4emIQDZpeYmvdCgezWtLF7qyQn4E?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-gray-600 dark:text-gray-300"
+              aria-label="Ayuda"
+            >
+              <HelpCircle />
+            </Link>
+            <button
+              className="md:hidden p-2 text-gray-600 dark:text-gray-300"
+              onClick={() => setOpen(false)}
+              aria-label="Cerrar menú"
+            >
+              <CloseIcon />
+            </button>
+          </div>
         </div>
         {user && (
           <div className="relative p-4">

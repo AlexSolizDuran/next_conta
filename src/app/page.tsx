@@ -6,7 +6,7 @@ export default function Home() {
     <div>
       <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
         <h1 className="text-3xl font-semibold mb-4">
-          Bienvenido a la aplicación de Contabilidad2asdasd
+          Bienvenido a la aplicación de Contabilidad
         </h1>
         <p className="text-gray-700 mb-8">
           Administra tus finanzas de manera eficiente.
