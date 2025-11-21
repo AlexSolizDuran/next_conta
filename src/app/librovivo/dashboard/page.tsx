@@ -1,17 +1,17 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import DashboardContent from "@/components/DashSuscripcion"
-import useSWR from 'swr';
-import { apiFetcher } from '@/lib/apiFetcher';
-import { SuscripcionData, TipoPlanFull } from '@/types/suscripcion/suscripcion';
+import React, { useState, useEffect } from "react";
+import DashboardContent from "@/components/DashSuscripcion";
+import useSWR from "swr";
+import { apiFetcher } from "@/lib/apiFetcher";
+import { SuscripcionData, TipoPlanFull } from "@/types/suscripcion/suscripcion";
 
 type Interpretacion = {
   tipo_reporte?:
-  | "balance_general"
-  | "estado_resultados"
-  | "libro_mayor"
-  | "libro_diario"
-  | string;
+    | "balance_general"
+    | "estado_resultados"
+    | "libro_mayor"
+    | "libro_diario"
+    | string;
   fecha_inicio?: string;
   fecha_fin?: string;
   descripcion_interpretada?: string;
@@ -64,8 +64,8 @@ export default function Page(): React.ReactElement {
   const {
     data: suscripcion,
     error: suscripcionError,
-    isLoading: loadingSuscripcion // Renombrado
-  } = useSWR<SuscripcionData>('/api/suscripcion/activa/', apiFetcher);
+    isLoading: loadingSuscripcion, // Renombrado
+  } = useSWR<SuscripcionData>("/api/suscripcion/activa/", apiFetcher);
 
   const [showContent, setShowContent] = useState<boolean | null>(null); // null = cargando, true = mostrar, false = ocultar
 
@@ -81,9 +81,9 @@ export default function Page(): React.ReactElement {
     }
 
     // Comprobar si el plan permite IA (cant_consultas_ia NO es null)
-    const permiteIA = suscripcion?.plan?.caracteristica?.cant_consultas_ia !== null;
+    const permiteIA =
+      suscripcion?.plan?.caracteristica?.cant_consultas_ia !== null;
     setShowContent(permiteIA);
-
   }, [suscripcion, suscripcionError, loadingSuscripcion]);
 
   useEffect(() => {
@@ -154,216 +154,39 @@ export default function Page(): React.ReactElement {
     );
   };
 
-  const exportPDF = async () => {
+  // Nueva función para exportar PDF o Excel usando el proxy Next.js
+  const exportFromBackend = async (format: "pdf" | "excel") => {
     if (!result) {
       setErrorIA("No hay reporte para exportar.");
       return;
     }
     setErrorIA(null);
     try {
-      const jsPDFModule: any = await import("jspdf");
-      const jsPDFConstructor =
-        jsPDFModule?.jsPDF ?? jsPDFModule?.default ?? jsPDFModule;
-      const doc = new jsPDFConstructor({ unit: "pt", format: "a4" });
-      const margin = 40;
-      let y = margin;
-      doc.setFontSize(12);
-      doc.text(
-        `Reporte: ${result.interpretacion?.tipo_reporte || result.reporte?.tipo || "-"
-        }`,
-        margin,
-        y
-      );
-      y += 18;
-      doc.text(`Empresa: ${result.empresa || "-"}`, margin, y);
-      y += 16;
-      doc.text(
-        `Fecha generación: ${result.fecha_generacion
-          ? new Date(result.fecha_generacion).toLocaleString()
-          : "-"
-        }`,
-        margin,
-        y
-      );
-      y += 20;
-      doc.setFontSize(11);
-      doc.text("Solicitud original:", margin, y);
-      y += 14;
-      const lines = doc.splitTextToSize(
-        result.solicitud_original || input || "",
-        520
-      );
-      doc.text(lines, margin, y);
-      y += lines.length * 12 + 8;
-
-      const tipo = result.reporte?.tipo || result.interpretacion?.tipo_reporte;
-
-      // === CORRECCIÓN MÍNIMA DE ESTRUCTURA PARA PDF (Balance General) ===
-      if (tipo === "balance_general") {
-        ["activos", "pasivos", "patrimonio"].forEach((sec) => {
-          if (y > 700) {
-            doc.addPage();
-            y = margin;
-          }
-          doc.setFontSize(12);
-          doc.text(sec.toUpperCase(), margin, y);
-          y += 16;
-          const rows = result.reporte?.[sec] || [];
-
-          rows.forEach((r: any) => {
-            // Renderizar la clase (Nivel 1)
-            const classLine = `${r.codigo} - ${r.nombre
-              } | TOTAL: ${formatNumber(r.total)}`;
-            const classLines = doc.splitTextToSize(classLine, 520);
-            doc.text(classLines, margin, y);
-            y += classLines.length * 12;
-
-            // Renderizar las cuentas anidadas (Nivel 2)
-            (r.cuentas || []).forEach((c: any) => {
-              // FIX: Asegurar que se accede a la propiedad de cadena, no al objeto
-              const accountLine = `    - ${c.codigo} ${c.nombre
-                }: ${formatNumber(c.saldo)}`;
-              const accountLines = doc.splitTextToSize(accountLine, 500);
-              doc.text(accountLines, margin + 10, y);
-              y += accountLines.length * 10;
-            });
-
-            if (y > 720) {
-              doc.addPage();
-              y = margin;
-            }
-          });
-          y += 8;
-        });
-      } else {
-        // === FIN CORRECCIÓN MÍNIMA DE ESTRUCTURA PARA PDF ===
-        if (y > 700) {
-          doc.addPage();
-          y = margin;
-        }
-        doc.text("Resumen del reporte (JSON):", margin, y);
-        y += 14;
-        const json = JSON.stringify(result.reporte || {}, null, 2);
-        const jlines = doc.splitTextToSize(json, 520);
-        doc.text(jlines, margin, y);
-      }
-
-      doc.save(`reporte_${tipo || "generico"}_${Date.now()}.pdf`);
-      setNotice("PDF generado");
+      // Usar el endpoint proxy que maneja el token y reenvía al backend
+      const url = `/api/reporteia?export_format=${format}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          texto_solicitud: result.solicitud_original || input,
+        }),
+      });
+      if (!res.ok) throw new Error("No se pudo exportar el reporte.");
+      const blob = await res.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = format === "pdf" ? "reporte.pdf" : "reporte.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      setNotice(`Reporte exportado como ${format === "pdf" ? "PDF" : "Excel"}`);
     } catch (err) {
       console.error(err);
-      setErrorIA("Error al exportar PDF.");
-    }
-  };
-
-  const exportExcel = async () => {
-    if (!result) {
-      setErrorIA("No hay reporte para exportar.");
-      return;
-    }
-    setErrorIA(null);
-    try {
-      const XLSXModule: any = await import("xlsx");
-      const XLSX = XLSXModule?.default ?? XLSXModule;
-      const FileSaverModule: any = await import("file-saver");
-      const saveAs =
-        FileSaverModule?.saveAs ?? FileSaverModule?.default ?? FileSaverModule;
-
-      const wb = XLSX.utils.book_new();
-      const tipo = result.reporte?.tipo || result.interpretacion?.tipo_reporte;
-
-      // === CORRECCIÓN MÍNIMA DE ESTRUCTURA PARA EXCEL (Balance General) ===
-      if (tipo === "balance_general") {
-        ["activos", "pasivos", "patrimonio"].forEach((sec) => {
-          const arr = result.reporte?.[sec] || [];
-          let finalRows: any[] = [];
-
-          // Reestructurar para Excel (Clase + Cuentas)
-          arr.forEach((clase: any) => {
-            // Fila de total de la Clase
-            finalRows.push({
-              Código: clase.codigo,
-              Nombre: clase.nombre,
-              Tipo: "CLASE",
-              Total: clase.total,
-              Saldo: "",
-            });
-
-            // Filas de las Cuentas
-            (clase.cuentas || []).forEach((cuenta: any) => {
-              // FIX: Asegurar que se accede a la propiedad de cadena, no al objeto
-              finalRows.push({
-                Código: cuenta.codigo,
-                Nombre: cuenta.nombre,
-                Tipo: "CUENTA",
-                Total: "",
-                Saldo: cuenta.saldo,
-              });
-            });
-          });
-
-          const ws = XLSX.utils.json_to_sheet(finalRows);
-          XLSX.utils.book_append_sheet(wb, ws, sec.substring(0, 31));
-        });
-        // === FIN CORRECCIÓN MÍNIMA DE ESTRUCTURA PARA EXCEL ===
-      } else if (tipo === "estado_resultados") {
-        const rows = result.reporte?.items || [];
-        const ws = XLSX.utils.json_to_sheet(rows);
-        XLSX.utils.book_append_sheet(wb, ws, "EstadoResultados");
-      } else if (tipo === "libro_mayor") {
-        const cuentas = result.reporte?.cuentas || [];
-        cuentas.forEach((c: any) => {
-          const movimientos = c.movimientos || [];
-          const rows = movimientos.map((m: any) => ({
-            Fecha: m.fecha,
-            Asiento: m.asiento, // Agregado Asiento para mejor detalle
-            Referencia: m.referencia,
-            Descripcion: m.descripcion,
-            Debe: m.debe,
-            Haber: m.haber,
-          }));
-          const ws = XLSX.utils.json_to_sheet(rows);
-          XLSX.utils.book_append_sheet(
-            wb,
-            ws,
-            // FIX: Acceder a la cuenta o al código
-            (c.cuenta?.codigo || c.codigo || "Cuenta").substring(0, 31)
-          );
-        });
-      } else if (tipo === "libro_diario") {
-        const asientos = result.reporte?.asientos || [];
-        let finalRows: any[] = [];
-        asientos.forEach((a: any) => {
-          (a.movimientos || []).forEach((m: any) => {
-            finalRows.push({
-              Asiento: a.numero,
-              Fecha: a.fecha,
-              Descripcion_Asiento: a.descripcion,
-              Cuenta_Codigo: m.cuenta_codigo,
-              Cuenta_Nombre: m.cuenta_nombre,
-              Referencia: m.referencia,
-              Debe: m.debe,
-              Haber: m.haber,
-            });
-          });
-        });
-
-        const ws = XLSX.utils.json_to_sheet(finalRows);
-        XLSX.utils.book_append_sheet(wb, ws, "LibroDiario");
-      } else {
-        const ws = XLSX.utils.json_to_sheet([result.reporte || {}]);
-        XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-      }
-
-      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-      saveAs(
-        new Blob([wbout], { type: "application/octet-stream" }),
-        `reporte_${tipo || "generico"}_${Date.now()}.xlsx`
-      );
-      setNotice("Excel generado");
-    } catch (err) {
-      console.error(err);
-      setErrorIA("Error al exportar Excel.");
+      setErrorIA(`Error al exportar ${format === "pdf" ? "PDF" : "Excel"}.`);
     }
   };
 
@@ -460,7 +283,6 @@ export default function Page(): React.ReactElement {
 
     return (
       <div>
-        
         <div className="bg-white border rounded shadow-sm p-4">
           <h4 className="font-semibold text-lg mb-4">
             Estado de Resultados
@@ -667,29 +489,32 @@ export default function Page(): React.ReactElement {
   };
 
   if (showContent === null) {
-      // Estado de carga mientras se verifica la suscripción
-      return (
-          <main className="p-4 max-w-6xl mx-auto font-sans flex justify-center items-center h-screen">
-              <p className="text-gray-500">Verificando suscripción...</p>
-              {/* O un spinner más elaborado */}
-          </main>
-      );
+    // Estado de carga mientras se verifica la suscripción
+    return (
+      <main className="p-4 max-w-6xl mx-auto font-sans flex justify-center items-center h-screen">
+        <p className="text-gray-500">Verificando suscripción...</p>
+        {/* O un spinner más elaborado */}
+      </main>
+    );
   }
 
   if (showContent === false) {
-      // Estado si el plan es gratuito o hay error de suscripción
-      return (
-          <main className="p-4 max-w-6xl mx-auto font-sans flex flex-col justify-center items-center h-screen text-center">
-               <h1 className="text-2xl font-bold text-orange-600 mb-4">Acceso Limitado</h1>
-               <p className="text-gray-600 mb-6">
-                  La función de Generador de Reportes con IA no está disponible en tu plan actual.
-               </p>
-          </main>
-      );
+    // Estado si el plan es gratuito o hay error de suscripción
+    return (
+      <main className="p-4 max-w-6xl mx-auto font-sans flex flex-col justify-center items-center h-screen text-center">
+        <h1 className="text-2xl font-bold text-orange-600 mb-4">
+          Acceso Limitado
+        </h1>
+        <p className="text-gray-600 mb-6">
+          La función de Generador de Reportes con IA no está disponible en tu
+          plan actual.
+        </p>
+      </main>
+    );
   }
-  const tipoReporte = result?.reporte?.tipo || result?.interpretacion?.tipo_reporte;
+  const tipoReporte =
+    result?.reporte?.tipo || result?.interpretacion?.tipo_reporte;
 
-  
   return (
     <main className="p-4 max-w-6xl mx-auto font-sans">
       <style jsx global>{`
@@ -703,11 +528,13 @@ export default function Page(): React.ReactElement {
           Generador de Reportes con IA
         </h1>
         {/* Mostrar consultas restantes si están disponibles */}
-        {suscripcion?.consultas_ia_restantes !== null && suscripcion?.consultas_ia_restantes !== undefined && (
-             <div className="text-sm text-blue-700 font-medium">
-               Consultas IA restantes: {suscripcion.consultas_ia_restantes ?? 'Ilimitadas'}
-             </div>
-        )}
+        {suscripcion?.consultas_ia_restantes !== null &&
+          suscripcion?.consultas_ia_restantes !== undefined && (
+            <div className="text-sm text-blue-700 font-medium">
+              Consultas IA restantes:{" "}
+              {suscripcion.consultas_ia_restantes ?? "Ilimitadas"}
+            </div>
+          )}
       </div>
 
       {/* notifications */}
@@ -729,7 +556,7 @@ export default function Page(): React.ReactElement {
           onSubmit={handleSubmit} // Asegúrate que handleSubmit use setLoadingIA y setErrorIA
         >
           {/* ... (contenido del formulario sin cambios, usa loadingIA) ... */}
-           <label
+          <label
             htmlFor="solicitud"
             className="font-semibold text-lg text-gray-700 block"
           >
@@ -741,10 +568,11 @@ export default function Page(): React.ReactElement {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             rows={5}
-            className={`w-full rounded-lg border-2 p-3 text-sm transition-all duration-200 focus:outline-none focus:ring-4 ${validate(input)
+            className={`w-full rounded-lg border-2 p-3 text-sm transition-all duration-200 focus:outline-none focus:ring-4 ${
+              validate(input)
                 ? "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
                 : "border-red-400 focus:border-red-600 focus:ring-red-100"
-              }`}
+            }`}
             aria-invalid={!validate(input)}
           />
           <div className="flex items-center gap-4">
@@ -753,11 +581,7 @@ export default function Page(): React.ReactElement {
               className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white font-medium px-6 py-2.5 rounded-xl shadow-md hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={loadingIA || !validate(input)}
             >
-              {loadingIA ? ( 
-                <>Generando...</>
-              ) : (
-                "Generar Reporte"
-              )}
+              {loadingIA ? <>Generando...</> : "Generar Reporte"}
             </button>
             <span className="text-sm text-gray-500">
               La solicitud debe ser descriptiva (mín. 10 caracteres).
@@ -791,10 +615,11 @@ export default function Page(): React.ReactElement {
 
       {/* --- SECCIÓN DE RESULTADOS --- */}
       <section className="mt-8">
-         {/* Usa loadingIA para el mensaje inicial */}
+        {/* Usa loadingIA para el mensaje inicial */}
         {!result && !loadingIA && (
           <div className="text-gray-500 text-center p-8 border border-dashed rounded-lg bg-white shadow-sm">
-            Aquí se mostrará el reporte contable generado por la Inteligencia Artificial.
+            Aquí se mostrará el reporte contable generado por la Inteligencia
+            Artificial.
           </div>
         )}
 
@@ -824,16 +649,10 @@ export default function Page(): React.ReactElement {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={exportPDF}
+                  onClick={() => exportFromBackend("pdf")}
                   className="px-4 py-2 bg-red-600 text-white rounded-xl shadow-md hover:bg-red-700 text-sm transition-colors"
                 >
                   Exportar PDF
-                </button>
-                <button
-                  onClick={exportExcel}
-                  className="px-4 py-2 bg-green-600 text-white rounded-xl shadow-md hover:bg-green-700 text-sm transition-colors"
-                >
-                  Exportar Excel
                 </button>
               </div>
             </div>
@@ -853,15 +672,15 @@ export default function Page(): React.ReactElement {
                 "libro_mayor",
                 "libro_diario",
               ].includes(tipoReporte || "") && (
-                  <div className="mt-4">
-                    <h3 className="font-semibold mb-2">
-                      Detalle de Reporte Personalizado (JSON)
-                    </h3>
-                    <pre className="bg-gray-50 p-4 rounded-lg text-xs overflow-x-auto text-gray-800 border">
-                      {JSON.stringify(result.reporte, null, 2)}
-                    </pre>
-                  </div>
-                )}
+                <div className="mt-4">
+                  <h3 className="font-semibold mb-2">
+                    Detalle de Reporte Personalizado (JSON)
+                  </h3>
+                  <pre className="bg-gray-50 p-4 rounded-lg text-xs overflow-x-auto text-gray-800 border">
+                    {JSON.stringify(result.reporte, null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
           </div>
         )}
