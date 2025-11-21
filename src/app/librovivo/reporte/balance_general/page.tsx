@@ -87,7 +87,7 @@ function renderCuenta(cuenta: BalanceCuenta, level = 0): React.ReactElement {
 }
 
 export default function BalanceGeneralPage() {
-  const [fechaInicio, setFechaInicio] = useState("2010-01-01");
+  const [fechaInicio, setFechaInicio] = useState("1950-01-01");
 
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -228,7 +228,7 @@ export default function BalanceGeneralPage() {
 
     const activos = sumRoots(clasificadas.activos);
     const pasivosBruto = sumRoots(clasificadas.pasivos);
-    const patrimonioBruto = sumRoots(clasificadas.patrimonio) ;
+    const patrimonioBruto = sumRoots(clasificadas.patrimonio);
 
     // Si el backend define saldo = debe - haber, los pasivos/patrimonio suelen ser negativos.
     const pasivos = Math.abs(pasivosBruto);
@@ -360,9 +360,9 @@ export default function BalanceGeneralPage() {
           <div className="flex items-end">
             <button
               onClick={() => {
-                setFechaInicio("2010-01-01");
+                setFechaInicio("1950-01-01");
                 setFechaFin(todayStr);
-                setFechaInicioAplicada("2010-01-01");
+                setFechaInicioAplicada("1950-01-01");
                 setFechaFinAplicada(todayStr);
               }}
               className="w-full px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md transition-colors font-medium flex items-center justify-center gap-2"

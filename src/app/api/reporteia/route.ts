@@ -40,21 +40,35 @@ export async function POST(request: Request) {
         }
 
         // 1. Obtener el Access Token
-        const cookieStore = cookies(); 
+        const cookieStore = cookies();
         const bodyText = await request.text();
-
         const accessToken = (await cookieStore).get(ACCESS_TOKEN_COOKIE)?.value;
-        
         if (!accessToken) {
             console.warn("API /api/reportes/generar: Token de acceso no encontrado.");
             return NextResponse.json({ success: false, error: "Token de acceso no encontrado o sesión no iniciada." }, { status: 401 });
         }
-        
-        // 2. Intento de solicitud con el token actual
-        let res = await tryRequest(accessToken, bodyText);
 
-        // 3. Manejo de Error 401 (Unauthorized)
-        // Ya que se eliminó el flujo de refresh, cualquier 401 indica una sesión inválida.
+        // 2. Leer el parámetro export_format de la query
+        const { searchParams } = new URL(request.url);
+        const exportFormat = searchParams.get("export_format");
+        let endpoint = REPORT_ENDPOINT;
+        if (exportFormat === "pdf" || exportFormat === "excel") {
+            endpoint += `?export_format=${exportFormat}`;
+        }
+
+        // 3. Hacer la solicitud al backend con el endpoint correcto
+        const headers: Record<string, string> = {
+            "content-type": bodyText ? "application/json" : "text/plain",
+            Authorization: `Bearer ${accessToken}`,
+        };
+        const options: RequestInit = {
+            method: "POST",
+            headers,
+            body: bodyText || undefined,
+        };
+        let res = await fetch(`${BACKEND_URL}${endpoint}`, options);
+
+        // 4. Manejo de Error 401 (Unauthorized)
         if (res.status === 401) {
             console.log("Token expirado/inválido. Retornando 401 directamente.");
             return NextResponse.json(
@@ -62,9 +76,8 @@ export async function POST(request: Request) {
                 { status: 401 }
             );
         }
-        
-        // 4. Manejo Final de la Respuesta (Archivo o JSON)
-        
+
+        // 5. Manejo Final de la Respuesta (Archivo o JSON)
         if (!res.ok) {
             // Manejar otros errores (400, 500, etc.)
             const errorText = await res.text();
@@ -80,14 +93,12 @@ export async function POST(request: Request) {
             return NextResponse.json(payload, { status: res.status });
         }
 
-        // Si es un archivo binario (ej. PDF), transmitimos el cuerpo
+        // Si es un archivo binario (ej. PDF o Excel), transmitimos el cuerpo
         const responseHeaders = new Headers(res.headers);
-        
         return new NextResponse(res.body, {
             status: res.status,
             headers: responseHeaders, // Reenviamos Content-Disposition y Content-Type
         });
-
     } catch (err: any) {
         console.error("API /api/reportes/generar error:", err?.message ?? err);
         return NextResponse.json(
