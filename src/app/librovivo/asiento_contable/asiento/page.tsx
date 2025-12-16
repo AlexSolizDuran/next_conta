@@ -8,14 +8,16 @@ import { useState } from "react";
 import useSWR from "swr";
 import ButtonInput from "@/components/ButtonInput";
 import TableList from "@/components/TableList";
-import { Eye } from "lucide-react";
+import { Eye,Copy } from "lucide-react";
 import { usePermisos } from "@/context/PermisoProvider";
+import { useRouter } from "next/navigation"; 
+
 
 export default function AsientoPage() {
   const { permisos, tienePermiso } = usePermisos();
   const [page, setPage] = useState(1);
   const url = `/api/asiento_contable/asiento/?page=${page}`;
-
+  const router = useRouter();
   const {
     data: asientos,
     error,
@@ -32,6 +34,23 @@ export default function AsientoPage() {
   if (!asientos)
     return <div className="text-center p-10">Cargando asientos...</div>;
 
+  const handleDuplicar = async (id: string) => {
+    if (!confirm("¿Deseas generar un borrador a partir de este asiento?")) return;
+
+    try {
+      // CORRECCIÓN: Ponemos el ID en la URL
+      const res = await apiFetcher<any>(`/api/asiento_contable/asiento/${id}/duplicar/`, {
+        method: "POST",
+        // CORRECCIÓN CRÍTICA: Enviamos un objeto vacío para que req.json() no falle en el proxy
+        body: JSON.stringify({}), 
+      });
+      
+      router.push(`/librovivo/asiento_contable/asiento/${res.id}/editar`);
+      
+    } catch (e: any) {
+      alert("Error al duplicar: " + (e.message || e));
+    }
+  };
   // Columnas para TableList
   const columns = [
     {
@@ -62,6 +81,15 @@ export default function AsientoPage() {
             >
               <Eye className="w-5 h-5" />
             </Link>
+          )}
+          {tienePermiso("crear_asiento") && (
+            <button
+              onClick={() => handleDuplicar(asiento.id)}
+              className="text-green-600 hover:text-green-800 transition-colors"
+              title="Duplicar Asiento"
+            >
+              <Copy className="w-5 h-5" />
+            </button>
           )}
         </div>
       ),

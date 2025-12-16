@@ -1,267 +1,479 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import useSWR from "swr";
+import { use, useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { apiFetcher } from "@/lib/apiFetcher";
 import { CuentaList } from "@/types/cuenta/cuenta";
-import { AsientoGet } from "@/types/asiento/asiento";
+import { AsientoSet } from "@/types/asiento/asiento";
 import { MovimientoGet } from "@/types/asiento/movimiento";
+import CuentaSearchableSelect from "@/components/buttons/CuentaSearchableSelect";
+import { AiPrediction } from "@/types/ia/asiento_prediccion";
+import { PaginatedResponse } from "@/types/paginacion";
 
-export default function EditAsientoPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+const EPSILON = 0.0001;
+
+// Tipos auxiliares
+type MovimientoForm = MovimientoGet & { cuenta: CuentaList };
+
+const createInitialFormData = () => ({
+  descripcion: "",
+  estado: "BORRADOR", // 1. CAMBIO: Valor inicial por defecto
+  apiError: null as string | null,
+  movimientos: [] as MovimientoForm[], 
+});
+
+export default function EditarAsientoPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
-  const fetchUrl = `/api/asiento_contable/asiento/${id}/`;
+  const { id } = use(params);
 
-  // --- SWR para cargar todo el asiento (incluye movimientos) ---
-  const { data: asiento, error, mutate } = useSWR<AsientoGet>(
-    id ? fetchUrl : null,
-    apiFetcher
-  );
+  const [formData, setFormData] = useState(createInitialFormData());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
 
-  // --- SWR para cargar cuentas ---
-  const { data: cuentasData } = useSWR<{ results: CuentaList[] }>(
-    "/api/cuenta_contable/cuenta/",
-    apiFetcher
-  );
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
-  // --- Funciones de actualización local ---
-  const updateField = <K extends keyof AsientoGet>(field: K, value: AsientoGet[K]) => {
-    if (!asiento) return;
-    mutate({ ...asiento, [field]: value }, false);
+  const urlBase = `/api/asiento_contable/asiento/`;
+  const cuentaUrl = "/api/cuenta_contable/cuenta/";
+  const aiPredictUrl = "/api/ia/asiento_ia/";
+
+  // --- 1. CARGAR DATOS DEL ASIENTO ---
+  useEffect(() => {
+    const fetchAsiento = async () => {
+      if (!id) return;
+      setIsLoadingData(true);
+      try {
+        const data = await apiFetcher<any>(`${urlBase}${id}/`, { method: "GET" });
+        
+        setFormData({
+          descripcion: data.descripcion,
+          estado: data.estado || "BORRADOR", // 2. CAMBIO: Cargar estado actual
+          apiError: null,
+          movimientos: data.movimientos.map((mov: any) => ({
+            id: mov.id || `mov-fetched-${Math.random()}`,
+            referencia: mov.referencia || "",
+            cuenta: mov.cuenta, 
+            debe: parseFloat(mov.debe),
+            haber: parseFloat(mov.haber),
+          })),
+        });
+      } catch (error: any) {
+        console.error("Error cargando asiento:", error);
+        setApiError("No se pudo cargar la información del asiento. " + (error.message || ""));
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchAsiento();
+  }, [id, urlBase]);
+
+  // --- Lógica del Formulario ---
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> // Agregado SelectElement
+  ) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const updateMovimiento = (movId: string, field: keyof MovimientoGet | "cuenta", value: any) => {
-    if (!asiento) return;
-    const nuevosMovs = asiento.movimientos.map((m) =>
-      m.id === movId
-        ? {
-            ...m,
-            [field]:
-              field === "debe" || field === "haber"
-                ? Number(value) || 0
-                : field === "cuenta"
-                ? { ...value }
-                : value,
-          }
-        : m
-    );
-    mutate({ ...asiento, movimientos: nuevosMovs }, false);
+  const fetchAccountByCode = useCallback(
+    async (code: string): Promise<CuentaList | undefined> => {
+      const searchUrl = `${cuentaUrl}?search=${code}`;
+      try {
+        const result = await apiFetcher<PaginatedResponse<CuentaList>>(searchUrl, { method: "GET" });
+        return result?.results?.[0];
+      } catch (error) {
+        console.error(`Error fetching account for code ${code}:`, error);
+        return undefined;
+      }
+    },
+    [cuentaUrl]
+  );
+
+  const handleMovimientoFieldChange = (
+    id: string,
+    field: "referencia" | "debe" | "haber",
+    value: string
+  ) => {
+    const updatedMovimientos = formData.movimientos.map((mov) => {
+      if (mov.id === id) {
+        let numericValue: string | number = value;
+        if (field === "debe" || field === "haber") {
+          const cleanValue = value.replace(",", ".");
+          numericValue = parseFloat(cleanValue) || 0;
+        }
+        return { ...mov, [field]: numericValue as any };
+      }
+      return mov;
+    });
+    setFormData((prev) => ({ ...prev, movimientos: updatedMovimientos }));
   };
 
-  const addMovimiento = () => {
-    if (!asiento) return;
-    const nuevo: MovimientoGet = {
-      id: `tmp-${Date.now()}`,
+  const handleCuentaChange = (
+    movimientoId: string,
+    selectedCuenta: CuentaList
+  ) => {
+    if (!selectedCuenta) return;
+    setFormData((prev) => ({
+      ...prev,
+      movimientos: prev.movimientos.map((mov) =>
+        mov.id === movimientoId ? { ...mov, cuenta: selectedCuenta } : mov
+      ),
+    }));
+  };
+
+  const addMovimiento = useCallback(() => {
+    const newMovimiento: MovimientoForm = {
+      id: `mov-form-${Date.now()}`,
       referencia: "",
-      cuenta: { id: "", codigo: "", nombre: "", estado: "" },
+      cuenta: { id: "", codigo: "", nombre: "", estado: "" } as CuentaList,
       debe: 0,
       haber: 0,
     };
-    mutate({ ...asiento, movimientos: [...asiento.movimientos, nuevo] }, false);
+    setFormData((prev) => ({
+      ...prev,
+      movimientos: [...prev.movimientos, newMovimiento],
+    }));
+  }, []);
+
+  const removeMovimiento = (id: string) => {
+    if (formData.movimientos.length <= 2) {
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      movimientos: prev.movimientos.filter((mov) => mov.id !== id),
+    }));
   };
 
-  const removeMovimiento = (movId: string) => {
-    if (!asiento || asiento.movimientos.length <= 2) return;
-    const nuevosMovs = asiento.movimientos.filter((m) => m.id !== movId);
-    mutate({ ...asiento, movimientos: nuevosMovs }, false);
-  };
-
-  // --- Totales y balance ---
+  // --- Lógica de Balance ---
   const { totalDebe, totalHaber, isBalanced } = useMemo(() => {
-    if (!asiento) return { totalDebe: 0, totalHaber: 0, isBalanced: false };
-    const debe = asiento.movimientos.reduce((s, m) => s + Number(m.debe || 0), 0);
-    const haber = asiento.movimientos.reduce((s, m) => s + Number(m.haber || 0), 0);
-    return { totalDebe: debe, totalHaber: haber, isBalanced: debe === haber && debe > 0 };
-  }, [asiento]);
+    const debe = formData.movimientos.reduce((sum, mov) => sum + mov.debe, 0);
+    const haber = formData.movimientos.reduce((sum, mov) => sum + mov.haber, 0);
+    const isBalanced = Math.abs(debe - haber) < EPSILON && debe > 0;
 
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+    return {
+      totalDebe: debe,
+      totalHaber: haber,
+      isBalanced: isBalanced,
+    };
+  }, [formData.movimientos]);
 
+  const handleAISuggestion = useCallback(async () => {
+    const descripcion = formData.descripcion.trim();
+    if (!descripcion || aiLoading) return;
+
+    setAiLoading(true);
+    setApiError(null);
+    setAiError(null);
+
+    try {
+      const response: AiPrediction = await apiFetcher(aiPredictUrl, {
+        method: "POST",
+        body: JSON.stringify({ descripcion }),
+      });
+
+      if (response.success && response.debe && response.haber && response.monto) {
+        const [cuentaDebe, cuentaHaber] = await Promise.all([
+          fetchAccountByCode(response.debe),
+          fetchAccountByCode(response.haber),
+        ]);
+
+        const montoDecimal = parseFloat(response.monto);
+
+        if (cuentaDebe && cuentaHaber) {
+          setFormData((prev) => ({
+            ...prev,
+            movimientos: [
+              {
+                id: `mov-ai-debe-${Date.now()}`,
+                referencia: `IA Sugiere: ${descripcion}`,
+                cuenta: cuentaDebe,
+                debe: montoDecimal,
+                haber: 0,
+              },
+              {
+                id: `mov-ai-haber-${Date.now() + 1}`,
+                referencia: `IA Sugiere: ${descripcion}`,
+                cuenta: cuentaHaber,
+                debe: 0,
+                haber: montoDecimal,
+              },
+            ],
+          }));
+        } else {
+          setAiError(`Error: La IA sugirió códigos (${response.debe}, ${response.haber}) pero no se encontraron.`);
+        }
+      } else {
+        setAiError(response.error || "La IA no pudo predecir el asiento.");
+      }
+    } catch (err: any) {
+      setApiError(err.detail || err.message || "Error de conexión con el servicio de IA.");
+    } finally {
+      setAiLoading(false);
+    }
+  }, [formData.descripcion, aiLoading, aiPredictUrl, fetchAccountByCode]);
+
+  // --- 2. MANEJO DE ENVÍO (ACTUALIZAR) ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!asiento) return;
+    setApiError(null);
 
-    setFormError(null);
-
-    // Validaciones
-    if (!asiento.descripcion.trim()) {
-      setFormError("La descripción no puede estar vacía");
-      return;
-    }
-    if (!isBalanced) {
-      setFormError("El asiento no está balanceado (total debe !== total haber)");
-      return;
-    }
-    if (asiento.movimientos.some((m) => !m.cuenta?.id)) {
-      setFormError("Todas las filas deben tener una cuenta seleccionada");
+    if (!isBalanced || formData.movimientos.some((mov) => !mov.cuenta.id)) {
+      setApiError("El asiento debe estar balanceado y todas las cuentas seleccionadas.");
       return;
     }
 
-    const payload = {
-      descripcion: asiento.descripcion.trim(),
-      estado: asiento.estado,
-      movimientos: asiento.movimientos.map((m) => ({
-        referencia: m.referencia,
-        cuenta: m.cuenta.id,
-        debe: m.debe,
-        haber: m.haber,
+    setIsSubmitting(true);
+
+    // 3. CAMBIO: Incluimos el estado en el payload
+    const payload: AsientoSet & { estado?: string } = {
+      descripcion: formData.descripcion,
+      estado: formData.estado, 
+      movimientos: formData.movimientos.map((mov) => ({
+        referencia: mov.referencia,
+        debe: mov.debe,
+        haber: mov.haber,
+        cuenta: mov.cuenta.id as string,
       })),
     };
 
-    setSaving(true);
     try {
-      await apiFetcher(fetchUrl, {
+      await apiFetcher(`${urlBase}${id}/`, {
         method: "PUT",
         body: JSON.stringify(payload),
       });
       router.push("/librovivo/asiento_contable/asiento");
     } catch (err: any) {
-      console.error(err);
-      setFormError(err?.message || "Error guardando el asiento");
+      const errorMessage =
+        err.detail ||
+        (err.errors ? JSON.stringify(err.errors) : null) ||
+        "Error desconocido al actualizar el asiento.";
+      setApiError(errorMessage);
     } finally {
-      setSaving(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (!asiento) return <div className="p-6 text-center">Cargando asiento...</div>;
-  if (error) return <div className="p-6 text-center text-red-600">{error.message}</div>;
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8 flex justify-center items-center">
+        <div className="text-xl text-indigo-800 font-semibold animate-pulse">Cargando datos del asiento...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-4">Editar Asiento #{asiento.numero}</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Descripción</label>
-          <input
-            value={asiento.descripcion}
-            onChange={(e) => updateField("descripcion", e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 p-2"
-          />
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-2xl">
+        <div className="p-6 border-b flex justify-between items-center bg-white rounded-t-lg">
+          <h1 className="text-3xl font-extrabold text-indigo-800">
+            Editar Asiento #{id && id.toString().slice(0,8)}...
+          </h1>
+          <Link
+            href="/librovivo/asiento_contable/asiento"
+            className="text-sm text-gray-500 hover:text-indigo-600 transition duration-150"
+          >
+            &larr; Volver a la lista
+          </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Estado</label>
-            <select
-              value={asiento.estado}
-              onChange={(e) => updateField("estado", e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 p-2"
-            >
-              <option value="BORRADOR">BORRADOR</option>
-              <option value="APROBADO">APROBADO</option>
-              <option value="CANCELADO">CANCELADO</option>
-            </select>
+        {apiError && (
+          <div className="p-4 bg-red-100 text-red-700 font-medium border-l-4 border-red-500">
+            Error: {apiError}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Fecha (creado)</label>
-            <input
-              value={asiento.fecha ? new Date(asiento.fecha).toLocaleString() : ""}
-              readOnly
-              className="mt-1 block w-full rounded-md border-gray-200 p-2 bg-gray-50"
-            />
-          </div>
-        </div>
+        )}
 
-        {/* Movimientos */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-semibold">Movimientos</h2>
-            <button type="button" onClick={addMovimiento} className="text-sm px-3 py-1 bg-green-100 text-green-800 rounded">
-              + Añadir fila
-            </button>
-          </div>
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 space-y-6">
+            {/* ZONA DE DESCRIPCIÓN */}
+            <div className="border border-gray-300 rounded-lg p-4 bg-yellow-50/50">
+              <label htmlFor="descripcion" className="block text-lg font-bold text-gray-700 mb-2">
+                Descripción del Asiento
+              </label>
+              <textarea
+                name="descripcion"
+                id="descripcion"
+                value={formData.descripcion}
+                onChange={handleInputChange}
+                required
+                rows={3}
+                placeholder="Descripción del asiento..."
+                className="mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm resize-none focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              
+              {/* 4. CAMBIO: SELECTOR DE ESTADO */}
+              <div className="mt-4">
+                <label htmlFor="estado" className="block text-sm font-bold text-gray-700 mb-1">
+                    Estado del Asiento
+                </label>
+                <select
+                    name="estado"
+                    id="estado"
+                    value={formData.estado}
+                    onChange={handleInputChange}
+                    className="block w-full md:w-1/3 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                >
+                    <option value="BORRADOR">🟡 BORRADOR</option>
+                    <option value="APROBADO">🟢 APROBADO</option>
+                    <option value="CANCELADO">🔴 CANCELADO</option>
+                </select>
+              </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm table-auto border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-2 border">Referencia</th>
-                  <th className="p-2 border">Cuenta</th>
-                  <th className="p-2 border text-right">Debe</th>
-                  <th className="p-2 border text-right">Haber</th>
-                  <th className="p-2 border">Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {asiento.movimientos.map((mov) => (
-                  <tr key={mov.id} className="hover:bg-gray-50">
-                    <td className="p-2 border">
-                      <input
-                        type="text"
-                        value={mov.referencia}
-                        onChange={(e) => updateMovimiento(mov.id, "referencia", e.target.value)}
-                        className="w-full p-1 rounded border-gray-300"
-                      />
-                    </td>
-                    <td className="p-2 border min-w-[220px]">
-                      <select
-                        value={mov.cuenta.id}
-                        onChange={(e) => {
-                          const selected = cuentasData?.results.find((c) => String(c.id) === e.target.value);
-                          updateMovimiento(mov.id, "cuenta", selected ? selected : { id: e.target.value });
-                        }}
-                        className="w-full p-1 rounded border-gray-300"
-                        required
-                      >
-                        <option value="" disabled>Seleccione una cuenta</option>
-                        {cuentasData?.results?.map((c) => (
-                          <option key={c.id} value={c.id}>{c.codigo} - {c.nombre}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="p-2 border text-right">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={mov.debe}
-                        onChange={(e) => updateMovimiento(mov.id, "debe", e.target.value)}
-                        className="w-full p-1 rounded border-gray-300 text-right"
-                      />
-                    </td>
-                    <td className="p-2 border text-right">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={mov.haber}
-                        onChange={(e) => updateMovimiento(mov.id, "haber", e.target.value)}
-                        className="w-full p-1 rounded border-gray-300 text-right"
-                      />
-                    </td>
-                    <td className="p-2 border text-center">
-                      {asiento.movimientos.length > 2 && (
-                        <button type="button" onClick={() => removeMovimiento(mov.id)} className="text-red-600">×</button>
-                      )}
-                    </td>
+              <div className="mt-4">
+                <button
+                    type="button"
+                    onClick={handleAISuggestion}
+                    disabled={!formData.descripcion || aiLoading}
+                    className={`w-40 py-2 px-4 rounded-lg font-semibold text-sm transition-colors ${
+                    aiLoading
+                        ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                        : "bg-purple-600 hover:bg-purple-700 text-white"
+                    } disabled:opacity-50`}
+                >
+                    {aiLoading ? "Analizando..." : "Sugerir con IA 🧠"}
+                </button>
+                {aiError && <p className="text-red-500 text-sm mt-2">{aiError}</p>}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-4">
+              <h4 className="text-xl font-semibold text-gray-800">Detalle de Movimientos</h4>
+              <button
+                type="button"
+                onClick={addMovimiento}
+                className="text-sm bg-indigo-100 text-indigo-800 hover:bg-indigo-200 font-semibold py-2 px-4 rounded-lg transition duration-150"
+              >
+                + Añadir Fila
+              </button>
+            </div>
+
+            {/* TABLA DE MOVIMIENTOS */}
+            <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[200px]">
+                      Referencia
+                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[300px]">
+                      Cuenta (Código - Nombre)
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">
+                      Debe
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">
+                      Haber
+                    </th>
+                    <th className="px-3 py-3 w-10"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 flex justify-between items-center">
-            <div>
-              <p>Total Debe: <span className="font-semibold">{totalDebe}</span></p>
-              <p>Total Haber: <span className="font-semibold">{totalHaber}</span></p>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {formData.movimientos.map((mov, index) => (
+                    <tr key={mov.id} className={`relative ${index === 0 ? "z-20" : "z-10"}`}>
+                      <td className="p-2">
+                        <input
+                          type="text"
+                          value={mov.referencia}
+                          onChange={(e) => handleMovimientoFieldChange(mov.id, "referencia", e.target.value)}
+                          placeholder="Glosa/Referencia"
+                          className="w-full border-gray-300 rounded-md text-sm p-2"
+                        />
+                      </td>
+                      <td className="p-2 relative" style={{ overflow: "visible", zIndex: 30 }}>
+                        <CuentaSearchableSelect
+                          movementId={mov.id}
+                          selectedCuenta={mov.cuenta}
+                          onSelectCuenta={handleCuentaChange}
+                          apiFetcher={apiFetcher}
+                        />
+                      </td>
+                      <td className="p-2 w-24">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={mov.debe === 0 ? "" : mov.debe.toString().replace(".", ",")}
+                          onChange={(e) => handleMovimientoFieldChange(mov.id, "debe", e.target.value)}
+                          className="w-full border-gray-300 rounded-md text-sm p-2 text-right bg-green-50 focus:bg-green-100"
+                        />
+                      </td>
+                      <td className="p-2 w-24">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={mov.haber === 0 ? "" : mov.haber.toString().replace(".", ",")}
+                          onChange={(e) => handleMovimientoFieldChange(mov.id, "haber", e.target.value)}
+                          className="w-full border-gray-300 rounded-md text-sm p-2 text-right bg-red-50 focus:bg-red-100"
+                        />
+                      </td>
+                      <td className="p-2 text-center w-10">
+                        {formData.movimientos.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => removeMovimiento(mov.id)}
+                            className="text-red-500 hover:text-red-700 text-lg"
+                            title="Eliminar fila"
+                          >
+                            &times;
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div>
-              <span className={`px-3 py-1 rounded-full font-bold ${isBalanced ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                {isBalanced ? "Balanceado" : "Desbalanceado"}
-              </span>
+
+            {/* ZONA DE BALANCE Y BOTONES */}
+            <div className="p-6 border-t bg-white rounded-b-lg flex justify-between items-end">
+              <div className="text-lg font-medium space-y-1">
+                <p>
+                  Total Debe:{" "}
+                  <span className="text-green-600">
+                    {totalDebe.toLocaleString("es-CO", { minimumFractionDigits: 2 })}
+                  </span>
+                </p>
+                <p>
+                  Total Haber:{" "}
+                  <span className="text-red-600">
+                    {totalHaber.toLocaleString("es-CO", { minimumFractionDigits: 2 })}
+                  </span>
+                </p>
+                <span
+                  className={`px-3 py-1 text-base font-bold rounded-full ${
+                    isBalanced
+                      ? "bg-green-600 text-white shadow-lg"
+                      : "bg-red-500 text-white shadow-lg animate-pulse"
+                  }`}
+                >
+                  {isBalanced ? "Balanceado" : "Desbalanceado"}
+                </span>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <Link
+                  href="/librovivo/asiento_contable/asiento"
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-150"
+                >
+                  Cancelar
+                </Link>
+                <button
+                  type="submit"
+                  disabled={!isBalanced || isSubmitting}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition duration-150"
+                >
+                  {isSubmitting ? "Actualizando..." : "Actualizar Asiento"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-
-        {formError && <div className="text-red-600">{formError}</div>}
-
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={() => router.back()} className="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
-          <button type="submit" disabled={!isBalanced || saving} className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50">
-            {saving ? "Guardando..." : "Guardar cambios"}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

@@ -48,6 +48,15 @@ export default function Page() {
             Configuración de Texto
           </h2>
         </Link>
+        <Link
+            href="/librovivo/configuracion/empresa"
+            className="block bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-6 border border-gray-100 hover:border-purple-400"
+          >
+            <h2 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
+              Datos de Empresa
+            </h2>
+            
+          </Link>
       </div>
     </div>
   );
